@@ -1,0 +1,3 @@
+[submodule "security-advisor"]
+	path = security-advisor
+	url = git@github.com:kiwiProgrammer/security-advisor.git
