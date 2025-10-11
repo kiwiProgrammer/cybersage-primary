@@ -1,12 +1,12 @@
 [submodule "security-advisor"]
-	path = security-advisor
+	path = agent_d
 	url = git@github.com:kiwiProgrammer/security-advisor.git
 [submodule "AutonomousCouncil"]
-	path = AutonomousCouncil
+	path = agent_c
 	url = git@github.com:NFarisColab/AutonomousCouncil.git
 [submodule "capstone_agent_a"]
-	path = capstone_agent_a
+	path = agent_a
 	url = git@github.com:weeeelye/capstone_agent_a.git
 [submodule "agent_b"]
 	path = agent_b
-	url = git@github-personal:michaelleesg/nus-iss-test.git
+	url = git@github.com:michaelleesg/nus-iss-test.git

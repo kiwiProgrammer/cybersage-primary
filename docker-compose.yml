@@ -9,7 +9,7 @@ services:
 
   autonomous-council-api:
     build:
-      context: ./AutonomousCouncil
+      context: ./agent_c
       dockerfile: Dockerfile
     ports: !override
       - "8080:8000"
@@ -27,14 +27,14 @@ services:
 
   backend:
     build:
-      context: ./security-advisor/backend
+      context: ./agent_d/backend
       dockerfile: Dockerfile
     ports: !override
       - "8000:8000"
 
   frontend-react:
     build:
-      context: ./security-advisor/frontend-react
+      context: ./agent_d/frontend-react
       dockerfile: Dockerfile
     ports: !override
       - "3000:3000"
