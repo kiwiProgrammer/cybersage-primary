@@ -14,8 +14,15 @@ services:
         agent_a: ./agent_a
     ports:
       - "8090:8000"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=root
+      - RABBITMQ_PASS=toor
     volumes:
       - agent_a_web_out:/app/out
+    depends_on:
+      - rabbitmq
 
   chromadb:
     image: chromadb/chroma:latest

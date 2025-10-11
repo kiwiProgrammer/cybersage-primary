@@ -20,6 +20,7 @@ from fastapi import FastAPI, BackgroundTasks, HTTPException
 from pydantic import BaseModel, Field
 
 from agent_a.app.logging_conf import setup_logging
+from rabbitmq import publish_message
 
 # Setup logging
 setup_logging('INFO')
@@ -197,6 +198,19 @@ async def execute_cli_command(task_id: str, request: RunRequest):
             error=None if success else f"Command failed with exit code {result.exit_code}"
         )
 
+        # Publish to RabbitMQ
+        success_published = publish_message(
+            queue_name="data.ingest.done",
+            message={"response": run_response.model_dump()},
+            task_id=task_id
+        )
+        if success_published:
+            logger.info(f"Task {task_id}: Published to RabbitMQ queue 'data.ingest.done'")
+            print(f"[TASK {task_id}] Published to RabbitMQ queue: data.ingest.done")
+        else:
+            logger.error(f"Task {task_id}: Failed to publish to RabbitMQ")
+            print(f"[TASK {task_id}] ERROR: Failed to publish to RabbitMQ")
+
         # Update task with results
         tasks_storage[task_id]["status"] = "completed"
         tasks_storage[task_id]["completed_at"] = datetime.now().isoformat()
@@ -222,6 +236,19 @@ async def execute_cli_command(task_id: str, request: RunRequest):
             output="",
             error=str(e)
         )
+
+        # Publish to RabbitMQ
+        success_published = publish_message(
+            queue_name="data.ingest.done",
+            message={"response": run_response.model_dump()},
+            task_id=task_id
+        )
+        if success_published:
+            logger.info(f"Task {task_id}: Published error to RabbitMQ queue 'data.ingest.done'")
+            print(f"[TASK {task_id}] Published error to RabbitMQ queue: data.ingest.done")
+        else:
+            logger.error(f"Task {task_id}: Failed to publish error to RabbitMQ")
+            print(f"[TASK {task_id}] ERROR: Failed to publish error to RabbitMQ")
 
         # Update task with error
         tasks_storage[task_id]["status"] = "failed"
