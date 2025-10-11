@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  chromadb:
+    image: chromadb/chroma:latest
+    container_name: chromadb
+    ports: !override
+      - "8001:8000"
+
+  autonomous-council-api:
+    build:
+      context: ./AutonomousCouncil
+      dockerfile: Dockerfile
+    ports: !override
+      - "8080:8000"
+    environment:
+      - MODEL_PATH=/app/models/Llama-3.2-3B-Instruct
+      - CHROMA_HOST=chromadb
+      - CHROMA_PORT=8000
+      - EXPERTISE_DB_NAME=expertise_db
+      - INCIDENT_DB_NAME=incident_db
+
+  postgres:
+    image: postgres:15
+    ports: !override
+      - "5432:5432"
+
+  backend:
+    build:
+      context: ./security-advisor/backend
+      dockerfile: Dockerfile
+    ports: !override
+      - "8000:8000"
+
+  frontend-react:
+    build:
+      context: ./security-advisor/frontend-react
+      dockerfile: Dockerfile
+    ports: !override
+      - "3000:3000"

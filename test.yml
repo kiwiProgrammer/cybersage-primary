@@ -1,0 +1,186 @@
+name: cybersage-primary
+services:
+  autonomous-council-api:
+    build:
+      context: /Users/cheahkw/src/github.com/kiwiProgrammer/cybersage-primary/AutonomousCouncil
+      dockerfile: Dockerfile
+    container_name: autonomous-council-api
+    depends_on:
+      chromadb:
+        condition: service_healthy
+        required: true
+      postgres:
+        condition: service_healthy
+        required: true
+    environment:
+      CHROMA_HOST: chromadb
+      CHROMA_PORT: "8000"
+      DB_HOST: postgres
+      DB_NAME: postgresdb
+      DB_PASSWORD: password
+      DB_PORT: "5432"
+      DB_USER: postgres
+      EXPERTISE_DB_NAME: expertise_db
+      INCIDENT_DB_NAME: incident_db
+      MODEL_PATH: /app/models/Llama-3.2-3B-Instruct
+      OLLAMA_BASE_URL: http://localhost:11434
+      POSTGRES_DB: postgresdb
+      POSTGRES_HOST: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_PORT: "5432"
+      POSTGRES_USER: postgres
+      REACT_APP_API_URL: http://localhost:8000
+      REACT_APP_WS_URL: localhost:8000
+      SSH_TUNNEL_ENABLED: "true"
+      SSH_TUNNEL_PRIVATE_KEY_PATH: /Users/cheahkw/.ssh/KeyPair1.pem
+      SSH_TUNNEL_SERVER: ec2-34-235-136-83.compute-1.amazonaws.com
+      SSH_TUNNEL_SERVER_PORT: "22"
+      SSH_TUNNEL_SOURCE_PORT: "11434"
+      SSH_TUNNEL_TARGET_HOST: 127.0.0.1
+      SSH_TUNNEL_TARGET_PORT: "11434"
+      SSH_TUNNEL_USER: ec2-user
+      TAVILY_API_KEY: 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
+    healthcheck:
+      test:
+        - CMD
+        - curl
+        - -f
+        - http://localhost:8000/
+      timeout: 10s
+      interval: 30s
+      retries: 3
+      start_period: 40s
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 8000
+        published: "8080"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /Users/cheahkw/src/github.com/kiwiProgrammer/cybersage-primary/outputs
+        target: /app/outputs
+        bind:
+          create_host_path: true
+  backend:
+    build:
+      context: /Users/cheahkw/src/github.com/kiwiProgrammer/cybersage-primary/security-advisor/backend
+      dockerfile: Dockerfile
+    depends_on:
+      postgres:
+        condition: service_started
+        required: true
+    environment:
+      DB_HOST: postgres
+      DB_NAME: postgresdb
+      DB_PASSWORD: password
+      DB_PORT: "5432"
+      DB_USER: postgres
+      SSH_TUNNEL_ENABLED: "true"
+      SSH_TUNNEL_PRIVATE_KEY_PATH: /ssh_key
+      SSH_TUNNEL_SERVER: ec2-34-235-136-83.compute-1.amazonaws.com
+      SSH_TUNNEL_SERVER_PORT: "22"
+      SSH_TUNNEL_SOURCE_PORT: "11434"
+      SSH_TUNNEL_TARGET_HOST: 127.0.0.1
+      SSH_TUNNEL_TARGET_PORT: "11434"
+      SSH_TUNNEL_USER: ec2-user
+      TAVILY_API_KEY: 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
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 8000
+        published: "8000"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: bind
+        source: /Users/cheahkw/.ssh/KeyPair1.pem
+        target: /ssh_key
+        read_only: true
+        bind:
+          create_host_path: true
+  chromadb:
+    container_name: chromadb
+    environment:
+      ANONYMIZED_TELEMETRY: "FALSE"
+      IS_PERSISTENT: "TRUE"
+      PERSIST_DIRECTORY: /chroma/chroma
+    healthcheck:
+      test:
+        - CMD
+        - /bin/bash
+        - -c
+        - cat < /dev/null > /dev/tcp/localhost/8000
+      timeout: 10s
+      interval: 30s
+      retries: 3
+    image: chromadb/chroma:latest
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 8000
+        published: "8001"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: chroma_data
+        target: /chroma/chroma
+        volume: {}
+  frontend-react:
+    build:
+      context: /Users/cheahkw/src/github.com/kiwiProgrammer/cybersage-primary/security-advisor/frontend-react
+      dockerfile: Dockerfile
+    depends_on:
+      backend:
+        condition: service_started
+        required: true
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 3000
+        published: "3000"
+        protocol: tcp
+    restart: unless-stopped
+  postgres:
+    container_name: postgres
+    environment:
+      POSTGRES_DB: profiledb
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - pg_isready -U postgres
+      timeout: 5s
+      interval: 10s
+      retries: 5
+    image: postgres:15
+    networks:
+      default: null
+    ports:
+      - mode: ingress
+        target: 5432
+        published: "5432"
+        protocol: tcp
+    restart: unless-stopped
+    volumes:
+      - type: volume
+        source: postgres_data
+        target: /var/lib/postgresql/data
+        volume: {}
+networks:
+  default:
+    name: cybersage-primary_default
+volumes:
+  chroma_data:
+    name: cybersage-primary_chroma_data
+    driver: local
+  postgres_data:
+    name: cybersage-primary_postgres_data
+    driver: local
