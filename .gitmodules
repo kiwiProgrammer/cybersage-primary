@@ -7,3 +7,6 @@
 [submodule "capstone_agent_a"]
 	path = capstone_agent_a
 	url = git@github.com:weeeelye/capstone_agent_a.git
+[submodule "agent_b"]
+	path = agent_b
+	url = git@github-personal:michaelleesg/nus-iss-test.git
