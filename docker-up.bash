@@ -11,6 +11,7 @@ echo ""
 cd "${SCRIPT_DIR}"
 
 docker-compose --project-directory ./ \
+  -f agent_a/docker-compose.yml \
   -f agent_c/docker-compose.yml \
   -f agent_d/docker-compose.yml \
   -f docker-compose.yml \

@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  mcp-server-tcp:
+    build:
+      context: ../agent_a
+      dockerfile: Dockerfile.mcp
+    container_name: mcp-server-tcp
+    image: cti-mcp-server:latest
+    environment:
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4o-mini}
+      - OUTPUT_DIR=/app/out
+      - DATABASE_URL=sqlite:////app/data/cti.db
+    volumes:
+      - ./out:/app/out
+      - ./data:/app/data
+      - ./.env:/app/.env:ro
+    ports:
+      - "8765:8765"
+    command: python -m app.cli mcp-server --transport tcp --host 0.0.0.0 --port 8765
+  agent_a_web:
+    build:
+      context: ./
+      additional_contexts:
+        agent_a: ../agent_a
+      dockerfile: Dockerfile
+    container_name: agent_a_web
+    ports:
+      - "8000:8000"
+    volumes:
+      # Mount output directory for artifacts
+      - ./out:/app/out
+      - ./data:/app/data
+    environment:
+      # OpenAI API configuration
+      - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - OPENAI_MODEL=${OPENAI_MODEL:-gpt-4o-mini}
+
+      # Database
+      - DATABASE_URL=${DATABASE_URL:-sqlite:////app/data/cti.db}
+
+      # Storage
+      - OUTPUT_DIR=/app/out
+      - S3_BUCKET=${S3_BUCKET:-}
+      - S3_REGION=${S3_REGION:-ap-southeast-1}
+
+      # Logging
+      - LOG_LEVEL=${LOG_LEVEL:-INFO}
+
+      # CVE enrichment
+      - NVD_API_KEY=${NVD_API_KEY:-}
+      - KEV_CACHE_URL=${KEV_CACHE_URL:-https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json}
+
+      # MITRE ATT&CK
+      - MITRE_ATTACK_URL=${MITRE_ATTACK_URL:-https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json}
+
+      # Agent configuration
+      - MAX_RETRIES=${MAX_RETRIES:-3}
+      - RETRY_DELAY=${RETRY_DELAY:-10.0}
+      - TIMEOUT_SECONDS=${TIMEOUT_SECONDS:-20}
+      - MAX_CONTENT_BYTES=${MAX_CONTENT_BYTES:-5000000}
+
+      # Token limits for LLM input processing
+      - LLM_DEFAULT_MAX_TOKENS=${LLM_DEFAULT_MAX_TOKENS:-5500}
+      - LLM_SUMMARIZE_MAX_TOKENS=${LLM_SUMMARIZE_MAX_TOKENS:-5000}
+      - LLM_ENTITY_MAX_TOKENS=${LLM_ENTITY_MAX_TOKENS:-5000}
+      - LLM_IOC_MAX_TOKENS=${LLM_IOC_MAX_TOKENS:-5000}
+      - LLM_CVE_MAX_TOKENS=${LLM_CVE_MAX_TOKENS:-2000}
+      - LLM_MITRE_MAX_TOKENS=${LLM_MITRE_MAX_TOKENS:-8000}
+      - LLM_GEO_MOTIVATION_MAX_TOKENS=${LLM_GEO_MOTIVATION_MAX_TOKENS:-5000}
+      - LLM_CYBER_MAX_TOKENS=${LLM_CYBER_MAX_TOKENS:-5500}
+
+      # Token processing configuration
+      - LLM_OVERLAP_TOKENS=${LLM_OVERLAP_TOKENS:-200}
+      - LLM_SUMMARY_MAX_TOKENS=${LLM_SUMMARY_MAX_TOKENS:-7000}
+    restart: unless-stopped
