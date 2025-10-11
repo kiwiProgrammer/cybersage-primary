@@ -4,6 +4,8 @@ services:
   mcp-server-tcp:
     build:
       context: ./agent_a
+    volumes:
+      - agent_a_web_out:/app/out
 
   agent_a_web:
     build:
@@ -12,6 +14,8 @@ services:
         agent_a: ./agent_a
     ports:
       - "8090:8000"
+    volumes:
+      - agent_a_web_out:/app/out
 
   chromadb:
     image: chromadb/chroma:latest
@@ -31,6 +35,8 @@ services:
       - CHROMA_PORT=8000
       - EXPERTISE_DB_NAME=expertise_db
       - INCIDENT_DB_NAME=incident_db
+    volumes:
+      - agent_a_web_out:/app/out
 
   postgres:
     image: postgres:15
@@ -43,6 +49,8 @@ services:
       dockerfile: Dockerfile
     ports: !override
       - "8000:8000"
+    volumes:
+      - agent_a_web_out:/app/out
 
   frontend-react:
     build:
@@ -67,3 +75,4 @@ services:
 
 volumes:
   rabbitmq_data:
+  agent_a_web_out:
