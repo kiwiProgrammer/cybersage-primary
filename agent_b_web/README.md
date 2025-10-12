@@ -29,6 +29,7 @@ When a message is received from the RabbitMQ queue:
    - Generate embeddings using sentence transformers
    - Ingest chunks into Qdrant vector database
 6. **Cleanup**: Deletes the temporary merged file
+7. **Publish Event**: Publishes completion message to RabbitMQ queue `history.graph.done`
 
 ## Architecture
 
@@ -50,6 +51,8 @@ RabbitMQ Queue (data.ingest.done)
     Ingest into Qdrant Vector DB
          ↓
     Delete temporary file
+         ↓
+    Publish to RabbitMQ Queue (history.graph.done)
 ```
 
 ## API Endpoints
@@ -279,6 +282,40 @@ channel.basic_publish(
 connection.close()
 ```
 
+## Event Publishing
+
+When a task completes successfully, a message is published to the RabbitMQ queue `history.graph.done` with the following format:
+
+### Published Message Format
+
+```json
+{
+  "timestamp": "2025-10-12T00:05:30.123456",
+  "task_id": "123e4567-e89b-12d3-a456-426614174000",
+  "data": {
+    "task_id": "123e4567-e89b-12d3-a456-426614174000",
+    "status": "completed",
+    "completed_at": "2025-10-12T00:05:30",
+    "file_count": 10,
+    "merged_file": "/app/pending/merged_cti_20251012_000530.json",
+    "collection": "heva_docs",
+    "qdrant_url": "http://qdrant:6333"
+  }
+}
+```
+
+**Fields:**
+- `timestamp`: ISO 8601 timestamp when message was published
+- `task_id`: Unique task identifier (included at both levels for routing)
+- `data.status`: Always "completed" (only successful tasks publish)
+- `data.completed_at`: When the task finished
+- `data.file_count`: Number of JSON files processed
+- `data.merged_file`: Path to merged file (may be null if deleted)
+- `data.collection`: Qdrant collection name where data was ingested
+- `data.qdrant_url`: Qdrant server URL
+
+This event can be consumed by downstream services (e.g., history graph builder) to trigger further processing.
+
 ## Data Format
 
 ### Input JSON Format
@@ -438,10 +475,17 @@ Adjust `MAX_WORKERS` based on your workload:
 ## Integration
 
 This service integrates with:
-- **Agent A Web** - Receives completion events when CTI data is ingested
-- **RabbitMQ** - Message queue for event-driven processing
+- **Agent A Web** (upstream) - Receives completion events via `data.ingest.done` queue when CTI data is ingested
+- **History Graph Builder** (downstream) - Publishes completion events to `history.graph.done` queue after processing
+- **RabbitMQ** - Message queue for event-driven processing (consumes from `data.ingest.done`, publishes to `history.graph.done`)
 - **Qdrant** - Vector database for storing embedded text chunks
 - **Shared Volume** - Accesses `/app/out` volume created by agent_a_web
+
+### Message Flow
+
+```
+Agent A Web → [data.ingest.done] → Agent B Web → [history.graph.done] → Next Service
+```
 
 ## Troubleshooting
 

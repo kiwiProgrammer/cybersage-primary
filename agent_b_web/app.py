@@ -8,12 +8,15 @@ Listens to RabbitMQ queue "data.ingest.done" and processes CTI JSON files:
 4. Saves to /app/pending
 5. Executes chunk_and_ingest.py with the merged file
 6. Deletes the temporary merged file
+7. Publishes completion message to "history.graph.done" queue
 
 Features:
 - Background task processing using ThreadPoolExecutor
 - Concurrent message handling (configurable via MAX_WORKERS)
 - Thread-safe message acknowledgment
 - Graceful shutdown with task completion wait
+- REST API for task monitoring and status
+- Event publishing for downstream services
 """
 
 import json
@@ -38,6 +41,7 @@ import uvicorn
 sys.path.insert(0, str(Path(__file__).parent.parent))
 
 from agent_b.scripts.chunk_and_ingest import main as chunk_and_ingest_main
+from rabbitmq import publish_message
 
 # Setup logging
 logging.basicConfig(
@@ -345,13 +349,37 @@ def process_message(message_data: Dict[str, Any], task_id: str):
         logger.info(f"[Task {task_id}] Successfully deleted {merged_file}")
 
         # Update task status to completed
+        completed_at = datetime.now().isoformat()
         with tasks_lock:
             tasks_storage[task_id]["status"] = "completed"
-            tasks_storage[task_id]["completed_at"] = datetime.now().isoformat()
+            tasks_storage[task_id]["completed_at"] = completed_at
 
         logger.info("=" * 60)
         logger.info(f"[Task {task_id}] Message processing completed successfully")
         logger.info("=" * 60)
+
+        # Publish completion message to RabbitMQ
+        logger.info(f"[Task {task_id}] Publishing completion message to 'history.graph.done' queue")
+        completion_message = {
+            "task_id": task_id,
+            "status": "completed",
+            "completed_at": completed_at,
+            "file_count": len(transformed_data),
+            "merged_file": str(merged_file) if merged_file else None,
+            "collection": QDRANT_COLLECTION,
+            "qdrant_url": QDRANT_URL
+        }
+
+        success_published = publish_message(
+            queue_name="history.graph.done",
+            message=completion_message,
+            task_id=task_id
+        )
+
+        if success_published:
+            logger.info(f"[Task {task_id}] Successfully published to 'history.graph.done' queue")
+        else:
+            logger.error(f"[Task {task_id}] Failed to publish to 'history.graph.done' queue")
 
     except Exception as e:
         logger.error(f"[Task {task_id}] Failed to process message: {e}", exc_info=True)
