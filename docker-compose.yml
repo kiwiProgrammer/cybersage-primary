@@ -24,6 +24,67 @@ services:
     depends_on:
       - rabbitmq
 
+  cyberner-api:
+    build:
+      context: ./agent_b
+      dockerfile: Dockerfile
+    container_name: cyberner-api
+    environment:
+      - QDRANT_URL=http://qdrant:6333
+      - QDRANT_COLLECTION=heva_docs
+    ports: [ "8100:8000" ]
+    command: >
+      sh -lc '
+        QURL=$${QDRANT_URL:-http://qdrant:6333};
+        echo "Waiting for $$QURL/readyz";
+        for i in $$(seq 1 120); do
+          if curl -fsS "$$QURL/readyz" >/dev/null; then
+            echo "Qdrant ready";
+            exec /opt/venv/bin/uvicorn 3_search_api_rich:app --host 0.0.0.0 --port 8000;
+          fi
+          echo "[ $$i ] waiting...";
+          sleep 5;
+        done;
+        echo "Qdrant not ready in time";
+        exit 1
+      '
+    restart: unless-stopped
+
+  agent_b_web:
+    build:
+      context: ./agent_b_web
+      additional_contexts:
+        agent_b: ./agent_b
+    ports:
+      - "8200:8200"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=root
+      - RABBITMQ_PASS=toor
+      - RABBITMQ_QUEUE=data.ingest.done
+      - OUT_DIR=/app/out
+      - PENDING_DIR=/app/pending
+      - QDRANT_URL=http://qdrant:6333
+      - QDRANT_COLLECTION=heva_docs
+      - MAX_WORKERS=4
+      - API_PORT=8200
+    volumes:
+      - agent_a_web_out:/app/out
+      - agent_b_pending:/app/pending
+    depends_on:
+      - rabbitmq
+      - qdrant
+
+  qdrant:
+    image: qdrant/qdrant:latest
+    container_name: qdrant
+    ports:
+      - "6333:6333"
+      - "6334:6334"
+    volumes:
+      - qdrant_data:/qdrant/storage
+
   chromadb:
     image: chromadb/chroma:latest
     container_name: chromadb
@@ -83,3 +144,5 @@ services:
 volumes:
   rabbitmq_data:
   agent_a_web_out:
+  agent_b_pending:
+  qdrant_data:
