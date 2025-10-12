@@ -33,7 +33,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 WORKDIR /app/agent_a_web
 
 # Create output directory
-RUN mkdir -p /app/out
+RUN mkdir -p /app/out /app/data
 
 # Expose port
 EXPOSE 8000

@@ -14,11 +14,6 @@ services:
         agent_a: ./agent_a
     ports:
       - "8090:8000"
-    environment:
-      - RABBITMQ_HOST=rabbitmq
-      - RABBITMQ_PORT=5672
-      - RABBITMQ_USER=root
-      - RABBITMQ_PASS=toor
     volumes:
       - agent_a_web_out:/app/out
     depends_on:
@@ -103,6 +98,11 @@ services:
       - CHROMA_PORT=8000
       - EXPERTISE_DB_NAME=expertise_db
       - INCIDENT_DB_NAME=incident_db
+      - POSTGRES_HOST=postgres
+      - POSTGRES_PORT=${POSTGRES_PORT:-5432}
+      - POSTGRES_DB=${POSTGRES_DB:-autonomous_council}
+      - POSTGRES_USER=${POSTGRES_USER:-postgres}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
     volumes:
       - agent_a_web_out:/app/out
 
