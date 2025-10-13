@@ -12,7 +12,7 @@ services:
       context: ./agent_a_web
       additional_contexts:
         agent_a: ./agent_a
-    ports:
+    ports: !override
       - "8090:8000"
     volumes:
       - agent_a_web_out:/app/out
@@ -93,7 +93,7 @@ services:
     ports: !override
       - "8080:8000"
     environment:
-      - MODEL_PATH=/app/models/Llama-3.2-3B-Instruct
+      - MODEL_PATH=/app/Model
       - CHROMA_HOST=chromadb
       - CHROMA_PORT=8000
       - EXPERTISE_DB_NAME=expertise_db
@@ -105,18 +105,43 @@ services:
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
     volumes:
       - agent_a_web_out:/app/out
+      - agent_c_temp:/app/temp
+      - ./Model:/app/models/Llama-3.2-3B-Instruct
+
+  agent_c_queue:
+    build:
+      context: ./agent_c_queue
+      dockerfile: Dockerfile
+    ports:
+      - "8300:8300"
+    environment:
+      - RABBITMQ_HOST=rabbitmq
+      - RABBITMQ_PORT=5672
+      - RABBITMQ_USER=root
+      - RABBITMQ_PASS=toor
+      - RABBITMQ_QUEUE=history.graph.done
+      - OUT_DIR=/app/out
+      - TEMP_DIR=/app/temp
+      - AGENT_C_URL=http://autonomous-council-api:8000
+      - API_PORT=8300
+    volumes:
+      - agent_a_web_out:/app/out
+      - agent_c_temp:/app/temp
+    depends_on:
+      - rabbitmq
+      - autonomous-council-api
 
   postgres:
     image: postgres:15
     ports: !override
-      - "5432:5432"
+      - "5433:5432"
 
   backend:
     build:
       context: ./agent_d/backend
       dockerfile: Dockerfile
     ports: !override
-      - "8000:8000"
+      - "9000:8000"
     volumes:
       - agent_a_web_out:/app/out
 
@@ -125,7 +150,7 @@ services:
       context: ./agent_d/frontend-react
       dockerfile: Dockerfile
     ports: !override
-      - "3000:3000"
+      - "2000:3000"
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -145,4 +170,5 @@ volumes:
   rabbitmq_data:
   agent_a_web_out:
   agent_b_pending:
+  agent_c_temp:
   qdrant_data:
