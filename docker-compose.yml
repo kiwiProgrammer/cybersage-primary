@@ -131,6 +131,19 @@ services:
       - rabbitmq
       - autonomous-council-api
 
+  cybersage_ui:
+    build:
+      context: ./cybersage_ui
+      dockerfile: Dockerfile
+    container_name: cybersage_ui
+    ports:
+      - "1000:80"
+    depends_on:
+      - agent_a_web
+      - agent_b_web
+      - agent_c_queue
+    restart: unless-stopped
+
   postgres:
     image: postgres:15
     ports: !override
