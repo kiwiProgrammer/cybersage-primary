@@ -59,7 +59,7 @@ jobs:
 
       - name: Build images with docker compose
         run: |
-          docker compose build --no-cache
+          docker compose build --no-cache --project-directory ./ -f agent_a_web/docker-compose.yml -f agent_c/docker-compose.yml -f agent_d/docker-compose.yml-f docker-compose.yml
 
       - name: Tag and push images to ECR
         env:
