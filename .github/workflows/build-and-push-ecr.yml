@@ -89,6 +89,8 @@ jobs:
             if [ "$SKIP" = true ]; then
               continue
             fi
+          
+            service="cybersage-primary-$(echo "$service" | tr '[:upper:]' '[:lower:]')"
 
             # Get image ID using docker compose - this works for both built and pulled images
             IMAGE_INFO=$(docker compose images "$service" 2>/dev/null | tail -n +2)
