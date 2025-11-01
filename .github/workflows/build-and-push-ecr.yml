@@ -1,0 +1,168 @@
+name: Build and Push to AWS ECR
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  # Services to ignore (use external images, not built)
+  IGNORE_SERVICES: "qdrant,chromadb,postgres,rabbitmq"
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Get commit SHA
+        id: commit
+        run: |
+          COMMIT_SHA=${{ github.sha }}
+          SHORT_SHA=${COMMIT_SHA:0:7}
+          echo "sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "Commit SHA: ${COMMIT_SHA}"
+          echo "Short SHA: ${SHORT_SHA}"
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build images with docker compose
+        run: |
+          docker compose build --no-cache
+
+      - name: Tag and push images to ECR
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          COMMIT_SHA: ${{ steps.commit.outputs.short_sha }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          IGNORE_SERVICES: ${{ env.IGNORE_SERVICES }}
+        run: |
+          #!/bin/bash
+          set -e
+
+          # Parse docker-compose to get all services
+          SERVICES=$(docker compose config --services)
+
+          # Convert ignore list to array
+          IFS=',' read -ra IGNORE_ARRAY <<< "$IGNORE_SERVICES"
+
+          for service in $SERVICES; do
+            # Check if service should be ignored
+            SKIP=false
+            for ignore_service in "${IGNORE_ARRAY[@]}"; do
+              ignore_service=$(echo "$ignore_service" | xargs)  # trim whitespace
+              if [ "$service" = "$ignore_service" ]; then
+                SKIP=true
+                echo "⊘ Skipping $service (external image)"
+                break
+              fi
+            done
+
+            if [ "$SKIP" = true ]; then
+              continue
+            fi
+
+            # Get image ID using docker compose - this works for both built and pulled images
+            IMAGE_INFO=$(docker compose images "$service" 2>/dev/null | tail -n +2)
+
+            if [ -z "$IMAGE_INFO" ]; then
+              echo "⚠ Warning: Could not find image for service: $service"
+              continue
+            fi
+
+            # Extract image ID from the output (it's in the IMAGE ID column)
+            IMAGE_ID=$(echo "$IMAGE_INFO" | awk '{print $NF}' | head -n1)
+            IMAGE_NAME=$(echo "$IMAGE_INFO" | awk '{print $1}' | head -n1)
+
+            if [ -z "$IMAGE_ID" ] || [ "$IMAGE_ID" = "IMAGE" ]; then
+              echo "⚠ Warning: Could not determine image ID for service: $service"
+              continue
+            fi
+
+            # Get local image digest
+            LOCAL_DIGEST=$(docker inspect "$IMAGE_ID" --format='{{index .RepoDigests 0}}' 2>/dev/null | cut -d'@' -f2)
+
+            if [ -z "$LOCAL_DIGEST" ]; then
+              # Fallback: use sha256 of the image
+              LOCAL_DIGEST=$(docker inspect "$IMAGE_ID" --format='sha256:{{.Id}}' | sed 's/sha256:sha256://g' | cut -c1-64)
+            fi
+
+            # Create repository name (service name converted to lowercase with hyphens)
+            REPO_NAME=$(echo "$service" | tr '[:upper:]' '[:lower:]' | sed 's/_/-/g')
+
+            # Full image names with tags
+            ECR_IMAGE_URI="${REGISTRY}/${REPO_NAME}:${COMMIT_SHA}"
+            ECR_IMAGE_LATEST="${REGISTRY}/${REPO_NAME}:latest"
+
+            echo "📦 Processing service: $service"
+            echo "   Local image: $IMAGE_NAME"
+            echo "   Image ID: $IMAGE_ID"
+            echo "   Local digest: $LOCAL_DIGEST"
+            echo "   ECR repository: $REPO_NAME"
+
+            # Create ECR repository if it doesn't exist
+            if ! aws ecr describe-repositories \
+              --repository-names "$REPO_NAME" \
+              --region "$AWS_REGION" 2>/dev/null >/dev/null; then
+              echo "📝 Creating ECR repository: $REPO_NAME"
+              aws ecr create-repository \
+                --repository-name "$REPO_NAME" \
+                --region "$AWS_REGION"
+            fi
+
+            # Get digest of latest image in ECR
+            ECR_LATEST_DIGEST=$(aws ecr batch-get-image \
+              --repository-name "$REPO_NAME" \
+              --image-ids imageTag="latest" \
+              --region "$AWS_REGION" \
+              --query 'images[0].imageId.imageDigest' \
+              --output text 2>/dev/null || echo "NOTFOUND")
+
+            # Compare digests
+            if [ "$ECR_LATEST_DIGEST" != "NOTFOUND" ] && [ "$LOCAL_DIGEST" = "$ECR_LATEST_DIGEST" ]; then
+              echo "✓ Image digest matches latest in ECR (skipping push)"
+              continue
+            fi
+
+            echo "📝 Image digest differs from ECR latest - will push with commit SHA tag"
+
+            # Tag the image for ECR
+            docker tag "$IMAGE_ID" "$ECR_IMAGE_URI"
+            docker tag "$IMAGE_ID" "$ECR_IMAGE_LATEST"
+
+            # Push images
+            echo "⬆️  Pushing to ECR..."
+            docker push "$ECR_IMAGE_URI"
+            docker push "$ECR_IMAGE_LATEST"
+            echo "✅ Successfully pushed: $ECR_IMAGE_URI"
+          done
+
+      - name: Print summary
+        if: always()
+        run: |
+          echo "## Build and Push Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Commit SHA:** ${{ steps.commit.outputs.sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Short SHA:** ${{ steps.commit.outputs.short_sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Registry:** ${{ steps.login-ecr.outputs.registry }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Ignored services:** ${{ env.IGNORE_SERVICES }}" >> $GITHUB_STEP_SUMMARY
