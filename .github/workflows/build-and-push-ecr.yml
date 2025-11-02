@@ -93,7 +93,7 @@ jobs:
             service="cybersage-primary-$(echo "$service" | tr '[:upper:]' '[:lower:]')"
 
             # Get image ID using docker compose - this works for both built and pulled images
-            IMAGE_INFO=$(docker compose images "$service" 2>/dev/null | tail -n +2)
+            IMAGE_INFO=$(docker images "$service" 2>/dev/null | tail -n +2)
 
             if [ -z "$IMAGE_INFO" ]; then
               echo "⚠ Warning: Could not find image for service: $service"
