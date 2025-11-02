@@ -10,7 +10,7 @@ on:
 
 env:
   HELM_CHART_PATH: ./deploy/helm/cybersage
-  NAMESPACE: default
+  NAMESPACE: cybersage
 
 jobs:
   deploy:
