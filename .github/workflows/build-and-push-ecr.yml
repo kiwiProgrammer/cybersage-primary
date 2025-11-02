@@ -101,7 +101,7 @@ jobs:
             fi
 
             # Extract image ID from the output (it's in the IMAGE ID column)
-            IMAGE_ID=$(echo "$IMAGE_INFO" | awk '{print $NF}' | head -n1)
+            IMAGE_ID=$(echo "$IMAGE_INFO" | awk '{print $(NF-2)}' | head -n1)
             IMAGE_NAME=$(echo "$IMAGE_INFO" | awk '{print $1}' | head -n1)
 
             if [ -z "$IMAGE_ID" ] || [ "$IMAGE_ID" = "IMAGE" ]; then
