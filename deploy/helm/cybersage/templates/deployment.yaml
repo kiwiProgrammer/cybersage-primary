@@ -1,0 +1,81 @@
+{{- range $serviceName, $service := .Values.services }}
+{{- if $service.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $serviceName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ $serviceName }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+spec:
+  replicas: {{ $service.replicas | default 1 }}
+  selector:
+    matchLabels:
+      app: {{ $serviceName }}
+  template:
+    metadata:
+      labels:
+        app: {{ $serviceName }}
+      annotations:
+        prometheus.io/scrape: "true"
+    spec:
+      containers:
+      - name: {{ $serviceName }}
+        image: {{ $.Values.global.registry.url }}/{{ $service.image.name }}:{{ $service.image.tag }}
+        imagePullPolicy: {{ $.Values.global.registry.pullPolicy }}
+        ports:
+        - name: http
+          containerPort: {{ $service.containerPort }}
+
+        # Environment variables from ConfigMap
+        envFrom:
+        - configMapRef:
+            name: {{ $serviceName }}-config
+
+        # Additional environment variables from secrets if they exist
+        {{- if (.Files.Get (printf "values/%s.yaml" $serviceName)) }}
+        {{- $envFile := .Files.Get (printf "values/%s.yaml" $serviceName) | fromYaml }}
+        {{- if $envFile.secretKeys }}
+        env:
+        {{- range $envFile.secretKeys }}
+        - name: {{ . }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ $serviceName }}-secrets
+              key: {{ . }}
+        {{- end }}
+        {{- end }}
+        {{- else }}
+        # No service-specific env variables needed
+        {{- end }}
+
+        resources:
+          limits:
+            cpu: {{ $service.resources.limits.cpu }}
+            memory: {{ $service.resources.limits.memory }}
+          requests:
+            cpu: {{ $service.resources.requests.cpu }}
+            memory: {{ $service.resources.requests.memory }}
+
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 3
+          failureThreshold: 3
+{{- end }}
+{{- end }}

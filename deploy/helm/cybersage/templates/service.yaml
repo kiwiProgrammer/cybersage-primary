@@ -1,0 +1,116 @@
+{{- range $serviceName, $service := .Values.services }}
+{{- if $service.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $serviceName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ $serviceName }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+spec:
+  type: {{ $service.service.type }}
+  ports:
+  - port: {{ $service.service.port }}
+    targetPort: http
+    protocol: TCP
+    name: http
+  selector:
+    app: {{ $serviceName }}
+{{- end }}
+{{- end }}
+
+# Managed services
+{{- if .Values.managedServices.postgres.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: postgres
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: postgres
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.managedServices.postgres.port }}
+    targetPort: 5432
+    protocol: TCP
+    name: postgres
+  selector:
+    app: postgres
+{{- end }}
+
+{{- if .Values.managedServices.rabbitmq.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: rabbitmq
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: rabbitmq
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.managedServices.rabbitmq.ports.amqp }}
+    targetPort: 5672
+    protocol: TCP
+    name: amqp
+  - port: {{ .Values.managedServices.rabbitmq.ports.management }}
+    targetPort: 15672
+    protocol: TCP
+    name: management
+  selector:
+    app: rabbitmq
+{{- end }}
+
+{{- if .Values.managedServices.qdrant.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qdrant
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: qdrant
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.managedServices.qdrant.ports.grpc }}
+    targetPort: 6333
+    protocol: TCP
+    name: grpc
+  - port: {{ .Values.managedServices.qdrant.ports.http }}
+    targetPort: 6334
+    protocol: TCP
+    name: http
+  selector:
+    app: qdrant
+{{- end }}
+
+{{- if .Values.managedServices.chromadb.enabled }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: chromadb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: chromadb
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  type: ClusterIP
+  ports:
+  - port: {{ .Values.managedServices.chromadb.port }}
+    targetPort: 8000
+    protocol: TCP
+    name: http
+  selector:
+    app: chromadb
+{{- end }}

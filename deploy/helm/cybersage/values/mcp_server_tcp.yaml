@@ -1,0 +1,17 @@
+# Environment variables for mcp_server_tcp service
+
+env:
+  DATABASE_URL: "sqlite:////app/data/cti.db"
+  LLM_MODEL: "gpt-4o-mini"
+  OUTPUT_DIR: "/app/out"
+
+# Sensitive environment variables
+secretKeys:
+  - OPENAI_API_KEY
+
+# Volume mounts
+volumes:
+  - name: data
+    mountPath: /app/data
+  - name: output
+    mountPath: /app/out

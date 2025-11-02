@@ -1,0 +1,79 @@
+# PostgreSQL PVC
+{{- if and .Values.managedServices.postgres.enabled .Values.persistence.postgres.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: postgres-pvc
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: postgres
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.persistence.postgres.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.postgres.size }}
+{{- end }}
+
+# RabbitMQ PVC
+{{- if and .Values.managedServices.rabbitmq.enabled .Values.persistence.rabbitmq.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: rabbitmq-pvc
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: rabbitmq
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.persistence.rabbitmq.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.rabbitmq.size }}
+{{- end }}
+
+# Qdrant PVC
+{{- if and .Values.managedServices.qdrant.enabled .Values.persistence.qdrant.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: qdrant-pvc
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: qdrant
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.persistence.qdrant.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.qdrant.size }}
+{{- end }}
+
+# ChromaDB PVC
+{{- if and .Values.managedServices.chromadb.enabled .Values.persistence.chromadb.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: chromadb-pvc
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: chromadb
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: {{ .Values.persistence.chromadb.storageClass }}
+  resources:
+    requests:
+      storage: {{ .Values.persistence.chromadb.size }}
+{{- end }}

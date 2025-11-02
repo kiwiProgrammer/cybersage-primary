@@ -1,0 +1,47 @@
+# Environment variables for agent_a_web service
+# These are merged with the main values.yaml
+
+env:
+  DATABASE_URL: "sqlite:///app/data"
+  KEV_CACHE_URL: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+  LLM_CVE_MAX_TOKENS: "2000"
+  LLM_CYBER_MAX_TOKENS: "5500"
+  LLM_DEFAULT_MAX_TOKENS: "5500"
+  LLM_ENTITY_MAX_TOKENS: "5000"
+  LLM_GEO_MOTIVATION_MAX_TOKENS: "5000"
+  LLM_IOC_MAX_TOKENS: "5000"
+  LLM_MITRE_MAX_TOKENS: "8000"
+  LLM_OVERLAP_TOKENS: "200"
+  LLM_SUMMARIZE_MAX_TOKENS: "5000"
+  LLM_SUMMARY_MAX_TOKENS: "7000"
+  LOG_LEVEL: "INFO"
+  MAX_CONTENT_BYTES: "5000000"
+  MAX_RETRIES: "3"
+  MITRE_ATTACK_URL: "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json"
+  OPENAI_MODEL: "gpt-4o-mini"
+  OUTPUT_DIR: "/app/out"
+  RETRY_DELAY: "10.0"
+  S3_BUCKET: ""
+  S3_REGION: "ap-southeast-1"
+  TIMEOUT_SECONDS: "20"
+
+# Sensitive environment variables should be handled separately
+# Create a secret with these keys in your cluster:
+# kubectl create secret generic agent-a-web-secrets \
+#   --from-literal=OPENAI_API_KEY='sk-...' \
+#   --from-literal=NVD_API_KEY='...'
+secretKeys:
+  - OPENAI_API_KEY
+  - NVD_API_KEY
+
+# Service dependencies
+dependsOn:
+  - rabbitmq
+  - postgres
+
+# Volume mounts for this service
+volumes:
+  - name: data
+    mountPath: /app/data
+  - name: output
+    mountPath: /app/out

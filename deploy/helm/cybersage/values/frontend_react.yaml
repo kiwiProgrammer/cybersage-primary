@@ -1,0 +1,9 @@
+# Environment variables for frontend_react service
+
+env: {}
+  # Frontend typically uses build-time configuration
+  # Runtime environment variables can be set via env if needed
+
+# Service dependencies
+dependsOn:
+  - backend

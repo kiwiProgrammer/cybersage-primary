@@ -1,0 +1,206 @@
+# PostgreSQL Deployment
+{{- if .Values.managedServices.postgres.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: postgres
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: {{ .Values.managedServices.postgres.image }}
+        ports:
+        - name: postgres
+          containerPort: 5432
+        env:
+        - name: POSTGRES_DB
+          value: "postgresdb"
+        - name: POSTGRES_USER
+          value: "postgres"
+        - name: POSTGRES_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: postgres-credentials
+              key: password
+        resources:
+          limits:
+            cpu: {{ .Values.managedServices.postgres.resources.limits.cpu }}
+            memory: {{ .Values.managedServices.postgres.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.managedServices.postgres.resources.requests.cpu }}
+            memory: {{ .Values.managedServices.postgres.resources.requests.memory }}
+        volumeMounts:
+        - name: postgres-storage
+          mountPath: /var/lib/postgresql/data
+      volumes:
+      - name: postgres-storage
+        persistentVolumeClaim:
+          claimName: postgres-pvc
+{{- end }}
+
+# RabbitMQ Deployment
+{{- if .Values.managedServices.rabbitmq.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: rabbitmq
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: rabbitmq
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: rabbitmq
+  template:
+    metadata:
+      labels:
+        app: rabbitmq
+    spec:
+      containers:
+      - name: rabbitmq
+        image: {{ .Values.managedServices.rabbitmq.image }}
+        ports:
+        - name: amqp
+          containerPort: 5672
+        - name: management
+          containerPort: 15672
+        env:
+        - name: RABBITMQ_DEFAULT_USER
+          value: "root"
+        - name: RABBITMQ_DEFAULT_PASS
+          valueFrom:
+            secretKeyRef:
+              name: rabbitmq-credentials
+              key: password
+        - name: RABBITMQ_SERVER_ADDITIONAL_ERL_ARGS
+          value: "-rabbitmq_management load_definitions \"/etc/rabbitmq/definitions.json\""
+        resources:
+          limits:
+            cpu: {{ .Values.managedServices.rabbitmq.resources.limits.cpu }}
+            memory: {{ .Values.managedServices.rabbitmq.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.managedServices.rabbitmq.resources.requests.cpu }}
+            memory: {{ .Values.managedServices.rabbitmq.resources.requests.memory }}
+        volumeMounts:
+        - name: rabbitmq-storage
+          mountPath: /var/lib/rabbitmq
+      volumes:
+      - name: rabbitmq-storage
+        persistentVolumeClaim:
+          claimName: rabbitmq-pvc
+{{- end }}
+
+# Qdrant Deployment
+{{- if .Values.managedServices.qdrant.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qdrant
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: qdrant
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: qdrant
+  template:
+    metadata:
+      labels:
+        app: qdrant
+    spec:
+      containers:
+      - name: qdrant
+        image: {{ .Values.managedServices.qdrant.image }}
+        ports:
+        - name: grpc
+          containerPort: 6333
+        - name: http
+          containerPort: 6334
+        resources:
+          limits:
+            cpu: {{ .Values.managedServices.qdrant.resources.limits.cpu }}
+            memory: {{ .Values.managedServices.qdrant.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.managedServices.qdrant.resources.requests.cpu }}
+            memory: {{ .Values.managedServices.qdrant.resources.requests.memory }}
+        volumeMounts:
+        - name: qdrant-storage
+          mountPath: /qdrant/storage
+      volumes:
+      - name: qdrant-storage
+        persistentVolumeClaim:
+          claimName: qdrant-pvc
+{{- end }}
+
+# ChromaDB Deployment
+{{- if .Values.managedServices.chromadb.enabled }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: chromadb
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: chromadb
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: chromadb
+  template:
+    metadata:
+      labels:
+        app: chromadb
+    spec:
+      containers:
+      - name: chromadb
+        image: {{ .Values.managedServices.chromadb.image }}
+        ports:
+        - name: http
+          containerPort: 8000
+        env:
+        - name: ANONYMIZED_TELEMETRY
+          value: "FALSE"
+        - name: IS_PERSISTENT
+          value: "TRUE"
+        - name: PERSIST_DIRECTORY
+          value: "/chroma/chroma"
+        resources:
+          limits:
+            cpu: {{ .Values.managedServices.chromadb.resources.limits.cpu }}
+            memory: {{ .Values.managedServices.chromadb.resources.limits.memory }}
+          requests:
+            cpu: {{ .Values.managedServices.chromadb.resources.requests.cpu }}
+            memory: {{ .Values.managedServices.chromadb.resources.requests.memory }}
+        volumeMounts:
+        - name: chromadb-storage
+          mountPath: /chroma/chroma
+      volumes:
+      - name: chromadb-storage
+        persistentVolumeClaim:
+          claimName: chromadb-pvc
+{{- end }}

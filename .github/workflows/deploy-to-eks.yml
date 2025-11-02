@@ -1,0 +1,147 @@
+name: Deploy to EKS
+
+on:
+  workflow_run:
+    workflows: ["Build and Push to AWS ECR"]
+    types:
+      - completed
+    branches:
+      - main
+
+env:
+  HELM_CHART_PATH: ./deploy/helm/cybersage
+  NAMESPACE: default
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Get commit SHA
+        id: commit
+        run: |
+          COMMIT_SHA=${{ github.event.workflow_run.head_sha }}
+          SHORT_SHA=${COMMIT_SHA:0:7}
+          echo "sha=${COMMIT_SHA}" >> $GITHUB_OUTPUT
+          echo "short_sha=${SHORT_SHA}" >> $GITHUB_OUTPUT
+          echo "Commit SHA: ${COMMIT_SHA}"
+          echo "Short SHA: ${SHORT_SHA}"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: |
+          aws eks update-kubeconfig \
+            --name ${{ secrets.EKS_CLUSTER_NAME }} \
+            --region ${{ secrets.AWS_REGION }}
+
+      - name: Install Helm
+        uses: azure/setup-helm@v3
+        with:
+          version: 'latest'
+
+      - name: Create namespace
+        run: |
+          kubectl create namespace ${NAMESPACE} --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Login to Amazon ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Create secrets in cluster
+        run: |
+          # Create or update database credentials secret
+          kubectl create secret generic postgres-credentials \
+            --from-literal=password='${{ secrets.POSTGRES_PASSWORD }}' \
+            -n ${NAMESPACE} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # Create or update RabbitMQ credentials secret
+          kubectl create secret generic rabbitmq-credentials \
+            --from-literal=password='${{ secrets.RABBITMQ_PASSWORD }}' \
+            -n ${NAMESPACE} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # Create or update API keys secrets for services
+          for service in agent_a_web autonomous_council_api mcp_server_tcp; do
+            kubectl create secret generic ${service}-secrets \
+              --from-literal=OPENAI_API_KEY='${{ secrets.OPENAI_API_KEY }}' \
+              --from-literal=NVD_API_KEY='${{ secrets.NVD_API_KEY }}' \
+              -n ${NAMESPACE} \
+              --dry-run=client -o yaml | kubectl apply -f -
+          done
+
+          # Backend service secrets
+          kubectl create secret generic backend-secrets \
+            --from-literal=TAVILY_API_KEY='${{ secrets.TAVILY_API_KEY }}' \
+            --from-literal=DB_PASSWORD='${{ secrets.POSTGRES_PASSWORD }}' \
+            -n ${NAMESPACE} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+          # Autonomous Council API secrets (includes Tavily)
+          kubectl create secret generic autonomous-council-api-secrets \
+            --from-literal=OPENAI_API_KEY='${{ secrets.OPENAI_API_KEY }}' \
+            --from-literal=NVD_API_KEY='${{ secrets.NVD_API_KEY }}' \
+            --from-literal=TAVILY_API_KEY='${{ secrets.TAVILY_API_KEY }}' \
+            --from-literal=DB_PASSWORD='${{ secrets.POSTGRES_PASSWORD }}' \
+            -n ${NAMESPACE} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy with Helm
+        run: |
+          helm upgrade --install cybersage ${HELM_CHART_PATH} \
+            --namespace ${NAMESPACE} \
+            --values ${HELM_CHART_PATH}/values.yaml \
+            --set global.registry.url=${{ steps.login-ecr.outputs.registry }} \
+            --set "services.agent_a_web.image.tag=${{ steps.commit.outputs.short_sha }}" \
+            --set "services.agent_b_web.image.tag=${{ steps.commit.outputs.short_sha }}" \
+            --set "services.agent_c_queue.image.tag=${{ steps.commit.outputs.short_sha }}" \
+            --set "services.autonomous_council_api.image.tag=${{ steps.commit.outputs.short_sha }}" \
+            --set "services.backend.image.tag=${{ steps.commit.outputs.short_sha }}" \
+            --set "services.cybersage_ui.image.tag=${{ steps.commit.outputs.short_sha }}" \
+            --set "services.cyberner_api.image.tag=${{ steps.commit.outputs.short_sha }}" \
+            --set "services.frontend_react.image.tag=${{ steps.commit.outputs.short_sha }}" \
+            --set "services.mcp_server_tcp.image.tag=${{ steps.commit.outputs.short_sha }}" \
+            --wait \
+            --timeout 5m
+
+      - name: Verify deployment
+        run: |
+          echo "Checking deployment status..."
+          kubectl get deployments -n ${NAMESPACE}
+          echo ""
+          echo "Checking pod status..."
+          kubectl get pods -n ${NAMESPACE}
+
+      - name: Print deployment summary
+        if: always()
+        run: |
+          echo "## Helm Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "- **Cluster:** ${{ secrets.EKS_CLUSTER_NAME }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Namespace:** ${NAMESPACE}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image Tag:** ${{ steps.commit.outputs.short_sha }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Chart Version:** 1.0.0" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Deployment Status" >> $GITHUB_STEP_SUMMARY
+          kubectl get deployments -n ${NAMESPACE} -o wide >> $GITHUB_STEP_SUMMARY || echo "Deployment status check failed"
+
+      - name: Notify on failure
+        if: failure()
+        run: |
+          echo "❌ Deployment to EKS failed!"
+          echo "Check the workflow logs for more details."

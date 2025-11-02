@@ -1,0 +1,9 @@
+# Environment variables for cyberner_api service
+
+env:
+  QDRANT_COLLECTION: "heva_docs"
+  QDRANT_URL: "http://qdrant:6333"
+
+# Service dependencies
+dependsOn:
+  - qdrant

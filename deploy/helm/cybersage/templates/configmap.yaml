@@ -1,0 +1,24 @@
+{{- range $serviceName, $service := .Values.services }}
+{{- if $service.enabled }}
+{{- $envFile := .Files.Get (printf "values/%s.yaml" $serviceName) }}
+{{- if $envFile }}
+{{- $envData := $envFile | fromYaml }}
+{{- if $envData.env }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $serviceName }}-config
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app: {{ $serviceName }}
+    chart: {{ .Chart.Name }}-{{ .Chart.Version }}
+    release: {{ .Release.Name }}
+data:
+  {{- range $key, $value := $envData.env }}
+  {{ $key }}: "{{ $value }}"
+  {{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}

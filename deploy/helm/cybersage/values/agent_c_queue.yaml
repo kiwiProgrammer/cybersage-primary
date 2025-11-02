@@ -1,0 +1,24 @@
+# Environment variables for agent_c_queue service
+
+env:
+  AGENT_C_URL: "http://autonomous-council-api:8000"
+  API_PORT: "8300"
+  OUT_DIR: "/app/out"
+  RABBITMQ_HOST: "rabbitmq"
+  RABBITMQ_PASS: "toor"
+  RABBITMQ_PORT: "5672"
+  RABBITMQ_QUEUE: "history.graph.done"
+  RABBITMQ_USER: "root"
+  TEMP_DIR: "/app/temp"
+
+# Service dependencies
+dependsOn:
+  - rabbitmq
+  - autonomous-council-api
+
+# Volume mounts
+volumes:
+  - name: output
+    mountPath: /app/out
+  - name: temp
+    mountPath: /app/temp

@@ -1,0 +1,11 @@
+# Environment variables for cybersage_ui service
+
+env: {}
+  # UI service typically doesn't require runtime environment variables
+  # Configuration is usually handled at build time
+
+# Service dependencies
+dependsOn:
+  - agent_a_web
+  - agent_b_web
+  - agent_c_queue

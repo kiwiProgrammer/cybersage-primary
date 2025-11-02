@@ -1,0 +1,292 @@
+# Default values for cybersage
+# This is a YAML-formatted file with default values for all services
+# Services can be enabled/disabled and have their own configuration
+
+global:
+  # Docker registry configuration
+  registry:
+    url: ""  # Should be set to your ECR URL (e.g., 123456789.dkr.ecr.us-east-1.amazonaws.com)
+    pullPolicy: IfNotPresent
+
+  # Default replicas for all services
+  replicas: 1
+
+  # Default resource limits
+  resources:
+    limits:
+      cpu: "500m"
+      memory: "512Mi"
+    requests:
+      cpu: "250m"
+      memory: "256Mi"
+
+# Services configuration
+services:
+  # Agent A Web Service
+  agent_a_web:
+    enabled: true
+    replicas: 1
+    image:
+      name: "cybersage-primary-agent_a_web"
+      tag: "latest"
+    port: 8000
+    containerPort: 8000
+    service:
+      type: ClusterIP
+      port: 8000
+    resources:
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+    # Environment variables are sourced from values/agent_a_web.yaml
+
+  # Agent B Web Service
+  agent_b_web:
+    enabled: true
+    replicas: 1
+    image:
+      name: "cybersage-primary-agent_b_web"
+      tag: "latest"
+    port: 8200
+    containerPort: 8200
+    service:
+      type: ClusterIP
+      port: 8200
+    resources:
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+
+  # Agent C Queue Service
+  agent_c_queue:
+    enabled: true
+    replicas: 1
+    image:
+      name: "cybersage-primary-agent_c_queue"
+      tag: "latest"
+    port: 8300
+    containerPort: 8300
+    service:
+      type: ClusterIP
+      port: 8300
+    resources:
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+
+  # Autonomous Council API
+  autonomous_council_api:
+    enabled: true
+    replicas: 1
+    image:
+      name: "cybersage-primary-autonomous-council-api"
+      tag: "latest"
+    port: 8000
+    containerPort: 8000
+    service:
+      type: ClusterIP
+      port: 8000
+    resources:
+      limits:
+        cpu: "2000m"
+        memory: "2Gi"
+      requests:
+        cpu: "1000m"
+        memory: "1Gi"
+
+  # Backend Service
+  backend:
+    enabled: true
+    replicas: 1
+    image:
+      name: "cybersage-primary-backend"
+      tag: "latest"
+    port: 8000
+    containerPort: 8000
+    service:
+      type: ClusterIP
+      port: 8000
+    resources:
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+
+  # Cybersage UI
+  cybersage_ui:
+    enabled: true
+    replicas: 1
+    image:
+      name: "cybersage-primary-cybersage_ui"
+      tag: "latest"
+    port: 80
+    containerPort: 80
+    service:
+      type: ClusterIP
+      port: 80
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+      requests:
+        cpu: "250m"
+        memory: "256Mi"
+
+  # Cyberner API
+  cyberner_api:
+    enabled: true
+    replicas: 1
+    image:
+      name: "cybersage-primary-cyberner-api"
+      tag: "latest"
+    port: 8000
+    containerPort: 8000
+    service:
+      type: ClusterIP
+      port: 8000
+    resources:
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+
+  # Frontend React
+  frontend_react:
+    enabled: true
+    replicas: 1
+    image:
+      name: "cybersage-primary-frontend-react"
+      tag: "latest"
+    port: 3000
+    containerPort: 3000
+    service:
+      type: ClusterIP
+      port: 3000
+    resources:
+      limits:
+        cpu: "500m"
+        memory: "512Mi"
+      requests:
+        cpu: "250m"
+        memory: "256Mi"
+
+  # MCP Server TCP
+  mcp_server_tcp:
+    enabled: true
+    replicas: 1
+    image:
+      name: "cybersage-primary-mcp-server-tcp"
+      tag: "latest"
+    port: 8765
+    containerPort: 8765
+    service:
+      type: ClusterIP
+      port: 8765
+    resources:
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+
+# Managed services configuration
+managedServices:
+  postgres:
+    enabled: true
+    image: "postgres:15"
+    port: 5432
+    resources:
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+
+  rabbitmq:
+    enabled: true
+    image: "rabbitmq:3-management"
+    ports:
+      amqp: 5672
+      management: 15672
+    resources:
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+
+  qdrant:
+    enabled: true
+    image: "qdrant/qdrant:latest"
+    ports:
+      grpc: 6333
+      http: 6334
+    resources:
+      limits:
+        cpu: "2000m"
+        memory: "2Gi"
+      requests:
+        cpu: "1000m"
+        memory: "1Gi"
+
+  chromadb:
+    enabled: true
+    image: "chromadb/chroma:latest"
+    port: 8000
+    resources:
+      limits:
+        cpu: "1000m"
+        memory: "1Gi"
+      requests:
+        cpu: "500m"
+        memory: "512Mi"
+
+# Ingress configuration (optional)
+ingress:
+  enabled: false
+  className: "nginx"
+  annotations: {}
+  hosts:
+    - host: "cybersage.example.com"
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+
+# Persistence configuration for managed services
+persistence:
+  postgres:
+    enabled: true
+    size: "10Gi"
+    storageClass: "gp2"
+
+  rabbitmq:
+    enabled: true
+    size: "5Gi"
+    storageClass: "gp2"
+
+  qdrant:
+    enabled: true
+    size: "20Gi"
+    storageClass: "gp2"
+
+  chromadb:
+    enabled: true
+    size: "10Gi"
+    storageClass: "gp2"

@@ -1,0 +1,78 @@
+# Environment variables for autonomous_council_api service
+
+env:
+  CHROMA_HOST: "chromadb"
+  CHROMA_PORT: "8000"
+  DATABASE_URL: "sqlite:///app/data"
+  DB_HOST: "postgres"
+  DB_NAME: "postgresdb"
+  DB_PASSWORD: ""
+  DB_PORT: "5432"
+  DB_USER: "postgres"
+  EMBEDDING_MODEL: "all-MiniLM-L6-v2"
+  EXPERTISE_DB_NAME: "expertise_db"
+  INCIDENT_DB_NAME: "incident_db"
+  KEV_CACHE_URL: "https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json"
+  LLM_CVE_MAX_TOKENS: "2000"
+  LLM_CYBER_MAX_TOKENS: "5500"
+  LLM_DEFAULT_MAX_TOKENS: "5500"
+  LLM_ENTITY_MAX_TOKENS: "5000"
+  LLM_GEO_MOTIVATION_MAX_TOKENS: "5000"
+  LLM_IOC_MAX_TOKENS: "5000"
+  LLM_MITRE_MAX_TOKENS: "8000"
+  LLM_OVERLAP_TOKENS: "200"
+  LLM_SUMMARIZE_MAX_TOKENS: "5000"
+  LLM_SUMMARY_MAX_TOKENS: "7000"
+  LOG_LEVEL: "INFO"
+  MAX_CONTENT_BYTES: "5000000"
+  MAX_RETRIES: "3"
+  MCP_HOST: "127.0.0.1"
+  MCP_PORT: "8765"
+  MCP_START_SERVER: "false"
+  MCP_TRANSPORT: "tcp"
+  MITRE_ATTACK_URL: "https://raw.githubusercontent.com/mitre/cti/master/enterprise-attack/enterprise-attack.json"
+  MODEL_PATH: "/app/models"
+  OLLAMA_BASE_URL: "http://localhost:11434"
+  OPENAI_MODEL: "gpt-4o-mini"
+  OUTPUT_DIR: "/app/out"
+  POSTGRES_DB: "postgresdb"
+  POSTGRES_HOST: "postgres"
+  POSTGRES_PASSWORD: ""
+  POSTGRES_PORT: "5432"
+  POSTGRES_USER: "postgres"
+  QDRANT_COLLECTION: "heva_docs"
+  QDRANT_URL: "http://qdrant:6333"
+  REACT_APP_API_URL: "http://localhost:8000"
+  REACT_APP_WS_URL: "localhost:8000"
+  RETRY_DELAY: "10.0"
+  S3_BUCKET: ""
+  S3_REGION: "ap-southeast-1"
+  SSH_TUNNEL_ENABLED: "false"  # Should be configured for production
+  TIMEOUT_SECONDS: "20"
+  VECTORS_SIZE: "384"
+
+# Sensitive environment variables - should be provided via secrets
+secretKeys:
+  - OPENAI_API_KEY
+  - NVD_API_KEY
+  - TAVILY_API_KEY
+  - SSH_TUNNEL_PRIVATE_KEY_PATH
+  - DB_PASSWORD
+  - POSTGRES_PASSWORD
+
+# Service dependencies
+dependsOn:
+  - postgres
+  - chromadb
+  - qdrant
+
+# Volume mounts
+volumes:
+  - name: data
+    mountPath: /app/data
+  - name: models
+    mountPath: /app/models
+  - name: output
+    mountPath: /app/out
+  - name: temp
+    mountPath: /app/temp
