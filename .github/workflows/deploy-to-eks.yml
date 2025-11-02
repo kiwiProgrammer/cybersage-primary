@@ -21,6 +21,13 @@ jobs:
       contents: read
 
     steps:
+      - name: Setup SSH for git
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+      - name: Swap Github to use ssh
+        run: |
+          git config --global url."git@github.com:".insteadOf "https://github.com/"
       - name: Checkout code
         uses: actions/checkout@v4
         with:
