@@ -36,8 +36,8 @@ spec:
             name: {{ $serviceName | replace "_" "-" }}-config
 
         # Additional environment variables from secrets if they exist
-        {{- if (.Files.Get (printf "values/%s.yaml" $serviceName)) }}
-        {{- $envFile := .Files.Get (printf "values/%s.yaml" $serviceName) | fromYaml }}
+        {{- if ($.Files.Get (printf "values/%s.yaml" $serviceName)) }}
+        {{- $envFile := $.Files.Get (printf "values/%s.yaml" $serviceName) | fromYaml }}
         {{- if $envFile.secretKeys }}
         env:
         {{- range $envFile.secretKeys }}
