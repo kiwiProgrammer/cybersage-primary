@@ -33,7 +33,7 @@ spec:
         # Environment variables from ConfigMap
         envFrom:
         - configMapRef:
-            name: {{ $serviceName }}-config
+            name: {{ $serviceName | replace "_" "-" }}-config
 
         # Additional environment variables from secrets if they exist
         {{- if (.Files.Get (printf "values/%s.yaml" $serviceName)) }}
@@ -44,7 +44,7 @@ spec:
         - name: {{ . }}
           valueFrom:
             secretKeyRef:
-              name: {{ $serviceName }}-secrets
+              name: {{ $serviceName | replace "_" "-" }}-secrets
               key: {{ . }}
         {{- end }}
         {{- end }}

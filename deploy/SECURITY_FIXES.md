@@ -1,8 +1,8 @@
-# Security Fixes - Secret Management
+# Security Fixes - Secret Management & Kubernetes Naming Compliance
 
 ## Summary
 
-Hardcoded API keys and sensitive data have been removed from the Helm values files and replaced with secure Kubernetes Secret references.
+Hardcoded API keys and sensitive data have been removed from the Helm values files and replaced with secure Kubernetes Secret references. Additionally, service names have been updated to comply with Kubernetes RFC 1123 naming requirements.
 
 ## What Was Fixed
 
@@ -52,6 +52,7 @@ env:
   ...
 {{- end }}
 # Results in: env: ... env: ... env: ... (multiple declarations!)
+# Also, service names with underscores created invalid Kubernetes resource names
 ```
 
 **After (FIXED):**
@@ -62,18 +63,46 @@ env:
 - name: {{ . }}
   valueFrom:
     secretKeyRef:
-      name: {{ $serviceName }}-secrets
+      name: {{ $serviceName | replace "_" "-" }}-secrets
       key: {{ . }}
 {{- end }}
 # Results in proper YAML with single env array
+# Service names with underscores are converted to hyphens for Kubernetes RFC 1123 compliance
 ```
 
-### 4. Updated Documentation
+**Also fixed ConfigMap naming:**
+```yaml
+# ConfigMap now uses the same replace filter for proper naming
+metadata:
+  name: {{ $serviceName | replace "_" "-" }}-config
+```
 
-- ✅ `README.md` - Added security notice and secret creation instructions
+### 4. Fixed Kubernetes RFC 1123 Naming Compliance
+
+**Problem:** Service names with underscores (e.g., `agent_a_web`, `autonomous_council_api`) created invalid Kubernetes resource names when suffixed with `-secrets` or `-config` (e.g., `agent_a_web-secrets`). Kubernetes requires resource names to conform to RFC 1123, which only allows lowercase alphanumeric characters, hyphens, and dots.
+
+**Error Message:**
+```
+The Secret "agent_a_web-secrets" is invalid: metadata.name: Invalid value:
+"agent_a_web-secrets": a lowercase RFC 1123 subdomain must consist of lower
+case alphanumeric characters, '-' or '.', and must start and end with an
+alphanumeric character
+```
+
+**Solution:** Updated all service name references to replace underscores with hyphens:
+- `agent_a_web` → `agent-a-web`
+- `autonomous_council_api` → `autonomous-council-api`
+- `mcp_server_tcp` → `mcp-server-tcp`
+
+This is handled automatically in the Helm templates using the `replace "_" "-"` filter.
+
+### 5. Updated Documentation
+
+- ✅ `README.md` - Added security notice, secret creation instructions, and RFC 1123 naming note
 - ✅ `QUICK_START.md` - Updated with secure secret creation
 - ✅ `templates/secrets-template.yaml` - Comprehensive secret creation guide
 - ✅ `ENV_VARS_REFERENCE.md` - Security considerations added
+- ✅ `SECURITY_FIXES.md` - Added RFC 1123 naming compliance documentation
 
 ## Required Secrets
 
@@ -116,19 +145,21 @@ See `helm/cybersage/templates/secrets-template.yaml` for complete instructions.
 
 1. **Non-sensitive values** are in ConfigMaps (from `env:` in values files)
 2. **Sensitive values** are in Kubernetes Secrets (from `secretKeys:` in values files)
-3. The deployment template merges both:
+3. The deployment template merges both with proper RFC 1123 naming:
    ```yaml
    envFrom:
    - configMapRef:
-       name: {{ $serviceName }}-config
+       name: {{ $serviceName | replace "_" "-" }}-config
 
    env:
    - name: OPENAI_API_KEY
      valueFrom:
        secretKeyRef:
-         name: {{ $serviceName }}-secrets
+         name: {{ $serviceName | replace "_" "-" }}-secrets
          key: OPENAI_API_KEY
    ```
+
+   This ensures that service names like `agent_a_web` are automatically converted to `agent-a-web` in Kubernetes resource names, maintaining RFC 1123 compliance.
 
 ## Best Practices Implemented
 
@@ -214,10 +245,12 @@ kubectl exec -it <pod-name> -n cybersage -- env | grep OPENAI_API_KEY
 | `values/agent_a_web.yaml` | Removed hardcoded API keys, added to secretKeys |
 | `values/autonomous_council_api.yaml` | Removed hardcoded API keys and passwords |
 | `values/backend.yaml` | Removed hardcoded passwords |
-| `templates/deployment.yaml` | Fixed YAML generation for secret env vars |
+| `templates/deployment.yaml` | Fixed YAML generation for secret env vars; Added RFC 1123 name conversion |
+| `templates/configmap.yaml` | Added RFC 1123 name conversion for ConfigMap names |
 | `templates/secrets-template.yaml` | Added comprehensive secret creation guide |
-| `README.md` | Added security section and secret instructions |
+| `.github/workflows/deploy-to-eks.yml` | Updated secret creation to use hyphenated names |
+| `README.md` | Added security section, secret instructions, and RFC 1123 naming note |
 | `QUICK_START.md` | Updated with secure secret creation |
 | `SECURITY_FIXES.md` | This file - detailed explanation |
 
-All changes maintain backward compatibility with the Helm chart structure while improving security posture.
+All changes maintain backward compatibility with the Helm chart structure while improving security posture and Kubernetes resource naming compliance.

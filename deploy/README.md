@@ -178,12 +178,14 @@ Note: You may need to create an IAM role for the EBS CSI Driver.
 The build workflow creates these automatically, but you can manually create them:
 
 ```bash
-for service in agent_a_web agent_b_web agent_c_queue autonomous-council-api backend cybersage_ui cyberner-api frontend-react mcp-server-tcp; do
+for service in agent-a-web agent-b-web agent-c-queue autonomous-council-api backend cybersage-ui cyberner-api frontend-react mcp-server-tcp; do
   aws ecr create-repository \
     --repository-name cybersage-primary-${service} \
     --region us-east-1  # Replace with your region
 done
 ```
+
+Note: Service names use hyphens instead of underscores to comply with Kubernetes RFC 1123 naming requirements for resource names.
 
 ## GitHub Actions Secrets Configuration
 

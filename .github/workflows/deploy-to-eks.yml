@@ -84,7 +84,7 @@ jobs:
             --dry-run=client -o yaml | kubectl apply -f -
 
           # Create or update API keys secrets for services
-          for service in agent_a_web autonomous_council_api mcp_server_tcp; do
+          for service in agent-a-web autonomous-council-api mcp-server-tcp; do
             kubectl create secret generic ${service}-secrets \
               --from-literal=OPENAI_API_KEY='${{ secrets.OPENAI_API_KEY }}' \
               --from-literal=NVD_API_KEY='${{ secrets.NVD_API_KEY }}' \
