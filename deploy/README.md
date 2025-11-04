@@ -185,7 +185,7 @@ for service in agent-a-web agent-b-web agent-c-queue autonomous-council-api back
 done
 ```
 
-Note: Service names use hyphens instead of underscores to comply with Kubernetes RFC 1123 naming requirements for resource names.
+Note: Service names are automatically converted from underscores to hyphens (e.g., `agent_a_web` → `agent-a-web`) to comply with Kubernetes DNS-1035 naming requirements for resource names (Services, Deployments, containers).
 
 ## GitHub Actions Secrets Configuration
 

@@ -77,9 +77,10 @@ metadata:
   name: {{ $serviceName | replace "_" "-" }}-config
 ```
 
-### 4. Fixed Kubernetes RFC 1123 Naming Compliance
+### 4. Fixed Kubernetes Naming Compliance
 
-**Problem:** Service names with underscores (e.g., `agent_a_web`, `autonomous_council_api`) created invalid Kubernetes resource names when suffixed with `-secrets` or `-config` (e.g., `agent_a_web-secrets`). Kubernetes requires resource names to conform to RFC 1123, which only allows lowercase alphanumeric characters, hyphens, and dots.
+**Problem A - RFC 1123 for Secrets/ConfigMaps:**
+Service names with underscores (e.g., `agent_a_web`, `autonomous_council_api`) created invalid Kubernetes resource names when suffixed with `-secrets` or `-config` (e.g., `agent_a_web-secrets`). Kubernetes requires Secret and ConfigMap names to conform to RFC 1123.
 
 **Error Message:**
 ```
@@ -89,12 +90,28 @@ case alphanumeric characters, '-' or '.', and must start and end with an
 alphanumeric character
 ```
 
+**Problem B - DNS-1035 for Services/Deployments:**
+Service and Deployment resource names also cannot contain underscores. They must conform to DNS-1035 labels which are even more restrictive than RFC 1123.
+
+**Error Message:**
+```
+Service "agent_a_web" is invalid: metadata.name: Invalid value: "agent_a_web":
+a DNS-1035 label must consist of lower case alphanumeric characters or '-',
+start with an alphabetic character, and end with an alphanumeric character
+(e.g. 'my-name', or 'abc-123', regex used for validation is '[a-z]([-a-z0-9]*[a-z0-9])?')
+```
+
 **Solution:** Updated all service name references to replace underscores with hyphens:
 - `agent_a_web` → `agent-a-web`
 - `autonomous_council_api` → `autonomous-council-api`
 - `mcp_server_tcp` → `mcp-server-tcp`
 
-This is handled automatically in the Helm templates using the `replace "_" "-"` filter.
+This is handled automatically in the Helm templates using the `replace "_" "-"` filter on:
+- Deployment names: `metadata.name: {{ $serviceName | replace "_" "-" }}`
+- Service names: `metadata.name: {{ $serviceName | replace "_" "-" }}`
+- Container names: `name: {{ $serviceName | replace "_" "-" }}`
+- ConfigMap names: `metadata.name: {{ $serviceName | replace "_" "-" }}-config`
+- Secret names: `name: {{ $serviceName | replace "_" "-" }}-secrets`
 
 ### 5. Updated Documentation
 
@@ -245,12 +262,13 @@ kubectl exec -it <pod-name> -n cybersage -- env | grep OPENAI_API_KEY
 | `values/agent_a_web.yaml` | Removed hardcoded API keys, added to secretKeys |
 | `values/autonomous_council_api.yaml` | Removed hardcoded API keys and passwords |
 | `values/backend.yaml` | Removed hardcoded passwords |
-| `templates/deployment.yaml` | Fixed YAML generation for secret env vars; Added RFC 1123 name conversion |
+| `templates/deployment.yaml` | Fixed YAML generation for secret env vars; Added DNS-1035 name conversion for Deployment/container names |
+| `templates/service.yaml` | Added DNS-1035 name conversion for Service names |
 | `templates/configmap.yaml` | Added RFC 1123 name conversion for ConfigMap names |
 | `templates/secrets-template.yaml` | Added comprehensive secret creation guide |
 | `.github/workflows/deploy-to-eks.yml` | Updated secret creation to use hyphenated names |
-| `README.md` | Added security section, secret instructions, and RFC 1123 naming note |
+| `README.md` | Added security section, secret instructions, and naming note |
 | `QUICK_START.md` | Updated with secure secret creation |
-| `SECURITY_FIXES.md` | This file - detailed explanation |
+| `SECURITY_FIXES.md` | This file - detailed explanation of naming compliance |
 
-All changes maintain backward compatibility with the Helm chart structure while improving security posture and Kubernetes resource naming compliance.
+All changes maintain backward compatibility with the Helm chart structure while improving security posture and Kubernetes resource naming compliance (DNS-1035 for Services/Deployments, RFC 1123 for Secrets/ConfigMaps).

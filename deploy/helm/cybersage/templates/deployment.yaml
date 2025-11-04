@@ -4,7 +4,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ $serviceName }}
+  name: {{ $serviceName | replace "_" "-" }}
   namespace: {{ $.Release.Namespace }}
   labels:
     app: {{ $serviceName }}
@@ -23,7 +23,7 @@ spec:
         prometheus.io/scrape: "true"
     spec:
       containers:
-      - name: {{ $serviceName }}
+      - name: {{ $serviceName | replace "_" "-" }}
         image: {{ $.Values.global.registry.url }}/{{ $service.image.name }}:{{ $service.image.tag }}
         imagePullPolicy: {{ $.Values.global.registry.pullPolicy }}
         ports:

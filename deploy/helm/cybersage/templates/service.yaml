@@ -4,7 +4,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ $serviceName }}
+  name: {{ $serviceName | replace "_" "-" }}
   namespace: {{ $.Release.Namespace }}
   labels:
     app: {{ $serviceName }}
