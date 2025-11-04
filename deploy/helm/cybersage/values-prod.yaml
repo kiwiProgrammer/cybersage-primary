@@ -2,11 +2,11 @@
 # Use with: helm install cybersage ./helm/cybersage -f values-prod.yaml
 
 global:
-  replicas: 2  # HA configuration
+  replicas: 1  # Single pod per service
 
 services:
   agent_a_web:
-    replicas: 2
+    replicas: 1
     resources:
       limits:
         cpu: "2000m"
@@ -16,7 +16,7 @@ services:
         memory: "1Gi"
 
   agent_b_web:
-    replicas: 2
+    replicas: 1
     resources:
       limits:
         cpu: "2000m"
@@ -26,7 +26,7 @@ services:
         memory: "1Gi"
 
   agent_c_queue:
-    replicas: 2
+    replicas: 1
     resources:
       limits:
         cpu: "2000m"
@@ -36,7 +36,7 @@ services:
         memory: "1Gi"
 
   autonomous_council_api:
-    replicas: 2
+    replicas: 1
     resources:
       limits:
         cpu: "4000m"
@@ -46,7 +46,7 @@ services:
         memory: "2Gi"
 
   backend:
-    replicas: 2
+    replicas: 1
     resources:
       limits:
         cpu: "2000m"
@@ -56,7 +56,7 @@ services:
         memory: "1Gi"
 
   frontend_react:
-    replicas: 2
+    replicas: 1
     resources:
       limits:
         cpu: "1000m"
