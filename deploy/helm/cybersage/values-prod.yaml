@@ -66,15 +66,6 @@ services:
         memory: "512Mi"
 
 managedServices:
-  postgres:
-    resources:
-      limits:
-        cpu: "2000m"
-        memory: "2Gi"
-      requests:
-        cpu: "1000m"
-        memory: "1Gi"
-
   rabbitmq:
     resources:
       limits:
@@ -94,10 +85,6 @@ managedServices:
         memory: "2Gi"
 
 persistence:
-  postgres:
-    size: "50Gi"
-    storageClass: "gp2"
-
   rabbitmq:
     size: "20Gi"
     storageClass: "gp2"

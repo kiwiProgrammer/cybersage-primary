@@ -206,7 +206,7 @@ services:
 # Managed services configuration
 managedServices:
   postgres:
-    enabled: true
+    enabled: false
     image: "postgres:15"
     port: 5432
     resources:
@@ -272,7 +272,7 @@ ingress:
 # Persistence configuration for managed services
 persistence:
   postgres:
-    enabled: true
+    enabled: false
     size: "10Gi"
     storageClass: "gp2"
 
