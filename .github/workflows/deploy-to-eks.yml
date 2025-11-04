@@ -124,7 +124,7 @@ jobs:
             --set "services.frontend_react.image.tag=${{ steps.commit.outputs.short_sha }}" \
             --set "services.mcp_server_tcp.image.tag=${{ steps.commit.outputs.short_sha }}" \
             --wait \
-            --timeout 5m
+            --timeout 30m
 
       - name: Verify deployment
         run: |
