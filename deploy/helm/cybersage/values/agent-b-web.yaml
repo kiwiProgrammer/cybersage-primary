@@ -1,4 +1,4 @@
-# Environment variables for agent_b_web service
+# Environment variables for agent-b-web service
 
 env:
   API_PORT: "8200"

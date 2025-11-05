@@ -23,11 +23,11 @@ global:
 # Services configuration
 services:
   # Agent A Web Service
-  agent_a_web:
+  agent-a-web:
     enabled: true
     replicas: 1
     image:
-      name: "cybersage-primary-agent_a_web"
+      name: "cybersage-primary-agent-a-web"
       tag: "latest"
     port: 8000
     containerPort: 8000
@@ -41,14 +41,14 @@ services:
       requests:
         cpu: "500m"
         memory: "512Mi"
-    # Environment variables are sourced from values/agent_a_web.yaml
+    # Environment variables are sourced from values/agent-a-web.yaml
 
   # Agent B Web Service
-  agent_b_web:
+  agent-b-web:
     enabled: true
     replicas: 1
     image:
-      name: "cybersage-primary-agent_b_web"
+      name: "cybersage-primary-agent-b-web"
       tag: "latest"
     port: 8200
     containerPort: 8200
@@ -64,11 +64,11 @@ services:
         memory: "512Mi"
 
   # Agent C Queue Service
-  agent_c_queue:
+  agent-c-queue:
     enabled: true
     replicas: 1
     image:
-      name: "cybersage-primary-agent_c_queue"
+      name: "cybersage-primary-agent-c-queue"
       tag: "latest"
     port: 8300
     containerPort: 8300
@@ -84,7 +84,7 @@ services:
         memory: "512Mi"
 
   # Autonomous Council API
-  autonomous_council_api:
+  autonomous-council-api:
     enabled: true
     replicas: 1
     image:
@@ -124,11 +124,11 @@ services:
         memory: "512Mi"
 
   # Cybersage UI
-  cybersage_ui:
+  cybersage-ui:
     enabled: true
     replicas: 1
     image:
-      name: "cybersage-primary-cybersage_ui"
+      name: "cybersage-primary-cybersage-ui"
       tag: "latest"
     port: 80
     containerPort: 80
@@ -144,7 +144,7 @@ services:
         memory: "256Mi"
 
   # Cyberner API
-  cyberner_api:
+  cyberner-api:
     enabled: true
     replicas: 1
     image:
@@ -164,7 +164,7 @@ services:
         memory: "512Mi"
 
   # Frontend React
-  frontend_react:
+  frontend-react:
     enabled: true
     replicas: 1
     image:
@@ -184,7 +184,7 @@ services:
         memory: "256Mi"
 
   # MCP Server TCP
-  mcp_server_tcp:
+  mcp-server-tcp:
     enabled: true
     replicas: 1
     image:

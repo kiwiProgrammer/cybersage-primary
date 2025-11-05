@@ -2,9 +2,9 @@
 
 This document provides a comprehensive reference for all environment variables used by Cybersage services.
 
-## agent_a_web
+## agent-a-web
 
-Location: `helm/cybersage/values/agent_a_web.yaml`
+Location: `helm/cybersage/values/agent-a-web.yaml`
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -37,9 +37,9 @@ Location: `helm/cybersage/values/agent_a_web.yaml`
 - rabbitmq
 - postgres
 
-## agent_b_web
+## agent-b-web
 
-Location: `helm/cybersage/values/agent_b_web.yaml`
+Location: `helm/cybersage/values/agent-b-web.yaml`
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -59,9 +59,9 @@ Location: `helm/cybersage/values/agent_b_web.yaml`
 - rabbitmq
 - qdrant
 
-## agent_c_queue
+## agent-c-queue
 
-Location: `helm/cybersage/values/agent_c_queue.yaml`
+Location: `helm/cybersage/values/agent-c-queue.yaml`
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -79,9 +79,9 @@ Location: `helm/cybersage/values/agent_c_queue.yaml`
 - rabbitmq
 - autonomous-council-api
 
-## autonomous_council_api
+## autonomous-council-api
 
-Location: `helm/cybersage/values/autonomous_council_api.yaml`
+Location: `helm/cybersage/values/autonomous-council-api.yaml`
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -97,7 +97,7 @@ Location: `helm/cybersage/values/autonomous_council_api.yaml`
 | EXPERTISE_DB_NAME | string | `expertise_db` | Expertise database name |
 | INCIDENT_DB_NAME | string | `incident_db` | Incident database name |
 | KEV_CACHE_URL | string | CISA feed URL | Known exploited vulnerabilities |
-| LLM_* | various | See agent_a_web | LLM token limits |
+| LLM_* | various | See agent-a-web | LLM token limits |
 | LOG_LEVEL | string | `INFO` | Logging level |
 | MAX_CONTENT_BYTES | number | `5000000` | Maximum content size |
 | MAX_RETRIES | number | `3` | Maximum retry attempts |
@@ -148,20 +148,20 @@ Location: `helm/cybersage/values/backend.yaml`
 ### Dependencies
 - postgres
 
-## cybersage_ui
+## cybersage-ui
 
-Location: `helm/cybersage/values/cybersage_ui.yaml`
+Location: `helm/cybersage/values/cybersage-ui.yaml`
 
 No required environment variables. Configuration is typically build-time.
 
 ### Dependencies
-- agent_a_web
-- agent_b_web
-- agent_c_queue
+- agent-a-web
+- agent-b-web
+- agent-c-queue
 
-## cyberner_api
+## cyberner-api
 
-Location: `helm/cybersage/values/cyberner_api.yaml`
+Location: `helm/cybersage/values/cyberner-api.yaml`
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|
@@ -171,18 +171,18 @@ Location: `helm/cybersage/values/cyberner_api.yaml`
 ### Dependencies
 - qdrant
 
-## frontend_react
+## frontend-react
 
-Location: `helm/cybersage/values/frontend_react.yaml`
+Location: `helm/cybersage/values/frontend-react.yaml`
 
 No required environment variables. Configuration is typically build-time.
 
 ### Dependencies
 - backend
 
-## mcp_server_tcp
+## mcp-server-tcp
 
-Location: `helm/cybersage/values/mcp_server_tcp.yaml`
+Location: `helm/cybersage/values/mcp-server-tcp.yaml`
 
 | Variable | Type | Default | Description |
 |----------|------|---------|-------------|

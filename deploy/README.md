@@ -185,7 +185,7 @@ for service in agent-a-web agent-b-web agent-c-queue autonomous-council-api back
 done
 ```
 
-Note: Service names are automatically converted from underscores to hyphens (e.g., `agent_a_web` → `agent-a-web`) to comply with Kubernetes DNS-1035 naming requirements for resource names (Services, Deployments, containers).
+Note: Service names are automatically converted from underscores to hyphens (e.g., `agent-a-web` → `agent-a-web`) to comply with Kubernetes DNS-1035 naming requirements for resource names (Services, Deployments, containers).
 
 ## GitHub Actions Secrets Configuration
 
@@ -215,15 +215,15 @@ Each service has its own environment configuration file:
 
 ```
 deploy/helm/cybersage/values/
-├── agent_a_web.yaml
-├── agent_b_web.yaml
-├── agent_c_queue.yaml
-├── autonomous_council_api.yaml
+├── agent-a-web.yaml
+├── agent-b-web.yaml
+├── agent-c-queue.yaml
+├── autonomous-council-api.yaml
 ├── backend.yaml
-├── cybersage_ui.yaml
-├── cyberner_api.yaml
-├── frontend_react.yaml
-└── mcp_server_tcp.yaml
+├── cybersage-ui.yaml
+├── cyberner-api.yaml
+├── frontend-react.yaml
+└── mcp-server-tcp.yaml
 ```
 
 ### Updating Environment Variables
@@ -251,8 +251,8 @@ deploy/helm/cybersage/
 ├── Chart.yaml              # Chart metadata
 ├── values.yaml             # Default values for all services
 ├── values/                 # Environment-specific overrides
-│   ├── agent_a_web.yaml
-│   ├── agent_b_web.yaml
+│   ├── agent-a-web.yaml
+│   ├── agent-b-web.yaml
 │   └── ... (one per service)
 └── templates/
     ├── deployment.yaml     # Creates deployments for all services
@@ -353,12 +353,12 @@ kubectl get services -n cybersage
 To scale a specific service:
 
 ```bash
-# Scale agent_a_web to 3 replicas
-kubectl scale deployment agent_a_web --replicas=3 -n cybersage
+# Scale agent-a-web to 3 replicas
+kubectl scale deployment agent-a-web --replicas=3 -n cybersage
 
 # Or update values and redeploy
 helm upgrade cybersage ./helm/cybersage \
-  --set "services.agent_a_web.replicas=3" \
+  --set "services.agent-a-web.replicas=3" \
   -n cybersage
 ```
 
@@ -371,7 +371,7 @@ helm upgrade cybersage ./helm/cybersage \
 kubectl logs -f <pod-name> -n cybersage
 
 # View logs from all pods of a service
-kubectl logs -f -l app=agent_a_web -n cybersage
+kubectl logs -f -l app=agent-a-web -n cybersage
 ```
 
 ### Check Pod Status
@@ -444,7 +444,7 @@ aws ecr get-login-password --region us-east-1 | \
   docker login --username AWS --password-stdin YOUR_ACCOUNT_ID.dkr.ecr.us-east-1.amazonaws.com
 
 # Check image tags
-aws ecr describe-images --repository-name cybersage-primary-agent_a_web --region us-east-1
+aws ecr describe-images --repository-name cybersage-primary-agent-a-web --region us-east-1
 ```
 
 ### Service connectivity issues

@@ -1,4 +1,4 @@
-# Environment variables for cyberner_api service
+# Environment variables for cyberner-api service
 
 env:
   QDRANT_COLLECTION: "heva_docs"

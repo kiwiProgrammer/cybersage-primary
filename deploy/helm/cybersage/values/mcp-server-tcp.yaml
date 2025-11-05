@@ -1,4 +1,4 @@
-# Environment variables for mcp_server_tcp service
+# Environment variables for mcp-server-tcp service
 
 env:
   DATABASE_URL: "sqlite:////app/data/cti.db"

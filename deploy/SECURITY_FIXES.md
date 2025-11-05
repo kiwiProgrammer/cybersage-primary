@@ -12,7 +12,7 @@ Previously, sensitive data was stored in plain text in values files:
 
 **Before (INSECURE):**
 ```yaml
-# deploy/helm/cybersage/values/agent_a_web.yaml
+# deploy/helm/cybersage/values/agent-a-web.yaml
 env:
   NVD_API_KEY: "1c2c7de7-0340-49eb-8343-40df36a6d223"
   OPENAI_API_KEY: "sk-proj-3No4WjfFulhlP1ZCJ5zEVOMk7Xc3MvW7b0Te-N9zVd7AJy1_BntWb0_..."
@@ -34,10 +34,10 @@ secretKeys:
 
 The following service configuration files have been updated to remove hardcoded secrets:
 
-- ✅ `values/agent_a_web.yaml` - Removed NVD_API_KEY, OPENAI_API_KEY
-- ✅ `values/autonomous_council_api.yaml` - Removed NVD_API_KEY, hardcoded passwords
+- ✅ `values/agent-a-web.yaml` - Removed NVD_API_KEY, OPENAI_API_KEY
+- ✅ `values/autonomous-council-api.yaml` - Removed NVD_API_KEY, hardcoded passwords
 - ✅ `values/backend.yaml` - Removed hardcoded passwords
-- ✅ `values/mcp_server_tcp.yaml` - Already using secrets
+- ✅ `values/mcp-server-tcp.yaml` - Already using secrets
 - ✅ All other service files cleaned
 
 ### 3. Fixed Deployment Template
@@ -80,12 +80,12 @@ metadata:
 ### 4. Fixed Kubernetes Naming Compliance
 
 **Problem A - RFC 1123 for Secrets/ConfigMaps:**
-Service names with underscores (e.g., `agent_a_web`, `autonomous_council_api`) created invalid Kubernetes resource names when suffixed with `-secrets` or `-config` (e.g., `agent_a_web-secrets`). Kubernetes requires Secret and ConfigMap names to conform to RFC 1123.
+Service names with underscores (e.g., `agent-a-web`, `autonomous-council-api`) created invalid Kubernetes resource names when suffixed with `-secrets` or `-config` (e.g., `agent-a-web-secrets`). Kubernetes requires Secret and ConfigMap names to conform to RFC 1123.
 
 **Error Message:**
 ```
-The Secret "agent_a_web-secrets" is invalid: metadata.name: Invalid value:
-"agent_a_web-secrets": a lowercase RFC 1123 subdomain must consist of lower
+The Secret "agent-a-web-secrets" is invalid: metadata.name: Invalid value:
+"agent-a-web-secrets": a lowercase RFC 1123 subdomain must consist of lower
 case alphanumeric characters, '-' or '.', and must start and end with an
 alphanumeric character
 ```
@@ -95,16 +95,16 @@ Service and Deployment resource names also cannot contain underscores. They must
 
 **Error Message:**
 ```
-Service "agent_a_web" is invalid: metadata.name: Invalid value: "agent_a_web":
+Service "agent-a-web" is invalid: metadata.name: Invalid value: "agent-a-web":
 a DNS-1035 label must consist of lower case alphanumeric characters or '-',
 start with an alphabetic character, and end with an alphanumeric character
 (e.g. 'my-name', or 'abc-123', regex used for validation is '[a-z]([-a-z0-9]*[a-z0-9])?')
 ```
 
 **Solution:** Updated all service name references to replace underscores with hyphens:
-- `agent_a_web` → `agent-a-web`
-- `autonomous_council_api` → `autonomous-council-api`
-- `mcp_server_tcp` → `mcp-server-tcp`
+- `agent-a-web` → `agent-a-web`
+- `autonomous-council-api` → `autonomous-council-api`
+- `mcp-server-tcp` → `mcp-server-tcp`
 
 This is handled automatically in the Helm templates using the `replace "_" "-"` filter on:
 - Deployment names: `metadata.name: {{ $serviceName | replace "_" "-" }}`
@@ -176,7 +176,7 @@ See `helm/cybersage/templates/secrets-template.yaml` for complete instructions.
          key: OPENAI_API_KEY
    ```
 
-   This ensures that service names like `agent_a_web` are automatically converted to `agent-a-web` in Kubernetes resource names, maintaining RFC 1123 compliance.
+   This ensures that service names like `agent-a-web` are automatically converted to `agent-a-web` in Kubernetes resource names, maintaining RFC 1123 compliance.
 
 ## Best Practices Implemented
 
@@ -259,8 +259,8 @@ kubectl exec -it <pod-name> -n cybersage -- env | grep OPENAI_API_KEY
 
 | File | Change |
 |------|--------|
-| `values/agent_a_web.yaml` | Removed hardcoded API keys, added to secretKeys |
-| `values/autonomous_council_api.yaml` | Removed hardcoded API keys and passwords |
+| `values/agent-a-web.yaml` | Removed hardcoded API keys, added to secretKeys |
+| `values/autonomous-council-api.yaml` | Removed hardcoded API keys and passwords |
 | `values/backend.yaml` | Removed hardcoded passwords |
 | `templates/deployment.yaml` | Fixed YAML generation for secret env vars; Added DNS-1035 name conversion for Deployment/container names |
 | `templates/service.yaml` | Added DNS-1035 name conversion for Service names |

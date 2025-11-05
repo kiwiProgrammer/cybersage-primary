@@ -1,4 +1,4 @@
-# Environment variables for frontend_react service
+# Environment variables for frontend-react service
 
 env: {}
   # Frontend typically uses build-time configuration

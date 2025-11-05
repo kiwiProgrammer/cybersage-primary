@@ -5,7 +5,7 @@ global:
   replicas: 1  # Single pod per service
 
 services:
-  agent_a_web:
+  agent-a-web:
     replicas: 1
     resources:
       limits:
@@ -15,7 +15,7 @@ services:
         cpu: "1000m"
         memory: "1Gi"
 
-  agent_b_web:
+  agent-b-web:
     replicas: 1
     resources:
       limits:
@@ -25,7 +25,7 @@ services:
         cpu: "1000m"
         memory: "1Gi"
 
-  agent_c_queue:
+  agent-c-queue:
     replicas: 1
     resources:
       limits:
@@ -35,7 +35,7 @@ services:
         cpu: "1000m"
         memory: "1Gi"
 
-  autonomous_council_api:
+  autonomous-council-api:
     replicas: 1
     resources:
       limits:
@@ -55,7 +55,7 @@ services:
         cpu: "1000m"
         memory: "1Gi"
 
-  frontend_react:
+  frontend-react:
     replicas: 1
     resources:
       limits:

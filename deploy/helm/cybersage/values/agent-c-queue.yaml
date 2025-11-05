@@ -1,4 +1,4 @@
-# Environment variables for agent_c_queue service
+# Environment variables for agent-c-queue service
 
 env:
   AGENT_C_URL: "http://autonomous-council-api:8000"

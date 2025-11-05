@@ -1,4 +1,4 @@
-# Environment variables for agent_a_web service
+# Environment variables for agent-a-web service
 # These are merged with the main values.yaml
 
 env:

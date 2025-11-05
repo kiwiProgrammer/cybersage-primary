@@ -114,7 +114,7 @@ kubectl get pods -n cybersage -w
 
 ```bash
 # View logs from a service
-kubectl logs -f -l app=agent_a_web -n cybersage
+kubectl logs -f -l app=agent-a-web -n cybersage
 
 # View logs from a specific pod
 kubectl logs -f <pod-name> -n cybersage
@@ -137,7 +137,7 @@ kubectl port-forward svc/autonomous-council-api 8000:8000 -n cybersage
 ### Scale a Service
 
 ```bash
-kubectl scale deployment agent_a_web --replicas=3 -n cybersage
+kubectl scale deployment agent-a-web --replicas=3 -n cybersage
 ```
 
 ### Update Environment Variables
@@ -183,7 +183,7 @@ No manual steps needed after the initial setup!
 
 ### Pod Status: ImagePullBackOff
 - Check ECR repository exists: `aws ecr describe-repositories`
-- Verify image was pushed: `aws ecr describe-images --repository-name cybersage-primary-agent_a_web`
+- Verify image was pushed: `aws ecr describe-images --repository-name cybersage-primary-agent-a-web`
 - Check image tag matches deployment
 
 ### Pod Status: CrashLoopBackOff

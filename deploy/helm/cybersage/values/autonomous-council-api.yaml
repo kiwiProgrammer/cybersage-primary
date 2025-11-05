@@ -1,4 +1,4 @@
-# Environment variables for autonomous_council_api service
+# Environment variables for autonomous-council-api service
 
 env:
   CHROMA_HOST: "chromadb"
