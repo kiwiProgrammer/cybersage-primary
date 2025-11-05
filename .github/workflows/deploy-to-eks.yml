@@ -114,15 +114,15 @@ jobs:
             --namespace ${NAMESPACE} \
             --values ${HELM_CHART_PATH}/values.yaml \
             --set global.registry.url=${{ steps.login-ecr.outputs.registry }} \
-            --set "services.agent_a_web.image.tag=${{ steps.commit.outputs.short_sha }}" \
-            --set "services.agent_b_web.image.tag=${{ steps.commit.outputs.short_sha }}" \
-            --set "services.agent_c_queue.image.tag=${{ steps.commit.outputs.short_sha }}" \
-            --set "services.autonomous_council_api.image.tag=${{ steps.commit.outputs.short_sha }}" \
+            --set "services.agent-a-web.image.tag=${{ steps.commit.outputs.short_sha }}" \
+            --set "services.agent-b-web.image.tag=${{ steps.commit.outputs.short_sha }}" \
+            --set "services.agent-c-queue.image.tag=${{ steps.commit.outputs.short_sha }}" \
+            --set "services.autonomous-council_api.image.tag=${{ steps.commit.outputs.short_sha }}" \
             --set "services.backend.image.tag=${{ steps.commit.outputs.short_sha }}" \
-            --set "services.cybersage_ui.image.tag=${{ steps.commit.outputs.short_sha }}" \
-            --set "services.cyberner_api.image.tag=${{ steps.commit.outputs.short_sha }}" \
-            --set "services.frontend_react.image.tag=${{ steps.commit.outputs.short_sha }}" \
-            --set "services.mcp_server_tcp.image.tag=${{ steps.commit.outputs.short_sha }}" \
+            --set "services.cybersage-ui.image.tag=${{ steps.commit.outputs.short_sha }}" \
+            --set "services.cyberner-api.image.tag=${{ steps.commit.outputs.short_sha }}" \
+            --set "services.frontend-react.image.tag=${{ steps.commit.outputs.short_sha }}" \
+            --set "services.mcp-server-tcp.image.tag=${{ steps.commit.outputs.short_sha }}" \
             --wait \
             --timeout 30m
 
