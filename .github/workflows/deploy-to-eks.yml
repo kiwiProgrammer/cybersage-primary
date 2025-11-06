@@ -117,7 +117,7 @@ jobs:
             --set "services.agent-a-web.image.tag=${{ steps.commit.outputs.short_sha }}" \
             --set "services.agent-b-web.image.tag=${{ steps.commit.outputs.short_sha }}" \
             --set "services.agent-c-queue.image.tag=${{ steps.commit.outputs.short_sha }}" \
-            --set "services.autonomous-council_api.image.tag=${{ steps.commit.outputs.short_sha }}" \
+            --set "services.autonomous-council-api.image.tag=${{ steps.commit.outputs.short_sha }}" \
             --set "services.backend.image.tag=${{ steps.commit.outputs.short_sha }}" \
             --set "services.cybersage-ui.image.tag=${{ steps.commit.outputs.short_sha }}" \
             --set "services.cyberner-api.image.tag=${{ steps.commit.outputs.short_sha }}" \

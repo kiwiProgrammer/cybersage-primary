@@ -33,6 +33,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   storageClassName: {{ .Values.persistence.rabbitmq.storageClass }}
+  volumeMode: Filesystem
   resources:
     requests:
       storage: {{ .Values.persistence.rabbitmq.size }}
@@ -53,6 +54,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   storageClassName: {{ .Values.persistence.qdrant.storageClass }}
+  volumeMode: Filesystem
   resources:
     requests:
       storage: {{ .Values.persistence.qdrant.size }}
@@ -73,6 +75,7 @@ spec:
   accessModes:
     - ReadWriteOnce
   storageClassName: {{ .Values.persistence.chromadb.storageClass }}
+  volumeMode: Filesystem
   resources:
     requests:
       storage: {{ .Values.persistence.chromadb.size }}

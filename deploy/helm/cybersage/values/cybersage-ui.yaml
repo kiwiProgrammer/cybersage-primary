@@ -1,8 +1,8 @@
 # Environment variables for cybersage-ui service
 
+# UI service typically doesn't require runtime environment variables
+# Configuration is usually handled at build time
 env: {}
-  # UI service typically doesn't require runtime environment variables
-  # Configuration is usually handled at build time
 
 # Service dependencies
 dependsOn:

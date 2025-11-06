@@ -4,7 +4,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ $serviceName | replace "_" "-" }}
+  name: {{ $serviceName }}
   namespace: {{ $.Release.Namespace }}
   labels:
     app: {{ $serviceName }}
@@ -23,33 +23,31 @@ spec:
         prometheus.io/scrape: "true"
     spec:
       containers:
-      - name: {{ $serviceName | replace "_" "-" }}
+      - name: {{ $serviceName }}
         image: {{ $.Values.global.registry.url }}/{{ $service.image.name }}:{{ $service.image.tag }}
         imagePullPolicy: {{ $.Values.global.registry.pullPolicy }}
         ports:
         - name: http
           containerPort: {{ $service.containerPort }}
 
-        # Environment variables from ConfigMap
+        # Environment variables from ConfigMap (only if env vars exist)
+        {{- $envFile := $.Files.Get (printf "values/%s.yaml" $serviceName) | fromYaml }}
+        {{- if $envFile.env }}
         envFrom:
         - configMapRef:
-            name: {{ $serviceName | replace "_" "-" }}-config
+            name: {{ $serviceName }}-config
+        {{- end }}
 
         # Additional environment variables from secrets if they exist
-        {{- if ($.Files.Get (printf "values/%s.yaml" $serviceName)) }}
-        {{- $envFile := $.Files.Get (printf "values/%s.yaml" $serviceName) | fromYaml }}
         {{- if $envFile.secretKeys }}
         env:
         {{- range $envFile.secretKeys }}
         - name: {{ . }}
           valueFrom:
             secretKeyRef:
-              name: {{ $serviceName | replace "_" "-" }}-secrets
+              name: {{ $serviceName }}-secrets
               key: {{ . }}
         {{- end }}
-        {{- end }}
-        {{- else }}
-        # No service-specific env variables needed
         {{- end }}
 
         resources:

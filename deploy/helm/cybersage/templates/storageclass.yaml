@@ -1,0 +1,13 @@
+{{- if eq .Values.persistence.rabbitmq.storageClass "ebs-gp2-immediate" }}
+---
+apiVersion: storage.k8s.io/v1
+kind: StorageClass
+metadata:
+  name: ebs-gp2-immediate
+provisioner: ebs.csi.aws.com
+volumeBindingMode: Immediate
+reclaimPolicy: Delete
+parameters:
+  type: gp2
+  encrypted: "true"
+{{- end }}

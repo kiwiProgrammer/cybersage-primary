@@ -279,14 +279,14 @@ persistence:
   rabbitmq:
     enabled: true
     size: "5Gi"
-    storageClass: "gp2"
+    storageClass: "ebs-gp2-immediate"
 
   qdrant:
     enabled: true
     size: "20Gi"
-    storageClass: "gp2"
+    storageClass: "ebs-gp2-immediate"
 
   chromadb:
     enabled: true
     size: "10Gi"
-    storageClass: "gp2"
+    storageClass: "ebs-gp2-immediate"

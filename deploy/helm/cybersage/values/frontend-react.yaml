@@ -1,8 +1,8 @@
 # Environment variables for frontend-react service
 
+# Frontend typically uses build-time configuration
+# Runtime environment variables can be set via env if needed
 env: {}
-  # Frontend typically uses build-time configuration
-  # Runtime environment variables can be set via env if needed
 
 # Service dependencies
 dependsOn:

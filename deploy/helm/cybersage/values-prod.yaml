@@ -69,33 +69,33 @@ managedServices:
   rabbitmq:
     resources:
       limits:
-        cpu: "2000m"
-        memory: "2Gi"
-      requests:
         cpu: "1000m"
         memory: "1Gi"
+      requests:
+        cpu: "250m"
+        memory: "512Mi"
 
   qdrant:
     resources:
       limits:
-        cpu: "4000m"
-        memory: "4Gi"
-      requests:
         cpu: "2000m"
         memory: "2Gi"
+      requests:
+        cpu: "500m"
+        memory: "1Gi"
 
 persistence:
   rabbitmq:
     size: "20Gi"
-    storageClass: "gp2"
+    storageClass: "ebs-gp2-immediate"
 
   qdrant:
     size: "100Gi"
-    storageClass: "gp2"
+    storageClass: "ebs-gp2-immediate"
 
   chromadb:
     size: "50Gi"
-    storageClass: "gp2"
+    storageClass: "ebs-gp2-immediate"
 
 # Enable Ingress for production
 ingress:
