@@ -1,7 +1,7 @@
 # Environment variables for backend service
 
 env:
-  DB_HOST: "postgres"
+  DB_HOST: "database-1.cw3k0au6g59q.us-east-1.rds.amazonaws.com"
   DB_NAME: "postgresdb"
   DB_PASSWORD: ""
   DB_PORT: "5432"

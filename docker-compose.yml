@@ -5,9 +5,9 @@ services:
     build:
       context: ./agent_a
     volumes:
-      - agent_a_web_out:/app/out
+      - agent-a-web-out:/app/out
 
-  agent_a_web:
+  agent-a-web:
     build:
       context: ./agent_a_web
       additional_contexts:
@@ -15,7 +15,7 @@ services:
     ports: !override
       - "8090:8000"
     volumes:
-      - agent_a_web_out:/app/out
+      - agent-a-web-out:/app/out
     depends_on:
       - rabbitmq
 
@@ -45,7 +45,7 @@ services:
       '
     restart: unless-stopped
 
-  agent_b_web:
+  agent-b-web:
     build:
       context: ./agent_b_web
       additional_contexts:
@@ -65,8 +65,8 @@ services:
       - MAX_WORKERS=4
       - API_PORT=8200
     volumes:
-      - agent_a_web_out:/app/out
-      - agent_b_pending:/app/pending
+      - agent-a-web-out:/app/out
+      - agent-b-pending:/app/pending
     depends_on:
       - rabbitmq
       - qdrant
@@ -104,11 +104,11 @@ services:
       - POSTGRES_USER=${POSTGRES_USER:-postgres}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD:-postgres}
     volumes:
-      - agent_a_web_out:/app/out
-      - agent_c_temp:/app/temp
+      - agent-a-web-out:/app/out
+      - agent-c-temp:/app/temp
       - ./Model:/app/models/Llama-3.2-3B-Instruct
 
-  agent_c_queue:
+  agent-c-queue:
     build:
       context: ./agent_c_queue
       dockerfile: Dockerfile
@@ -125,23 +125,23 @@ services:
       - AGENT_C_URL=http://autonomous-council-api:8000
       - API_PORT=8300
     volumes:
-      - agent_a_web_out:/app/out
-      - agent_c_temp:/app/temp
+      - agent-a-web-out:/app/out
+      - agent-c-temp:/app/temp
     depends_on:
       - rabbitmq
       - autonomous-council-api
 
-  cybersage_ui:
+  cybersage-ui:
     build:
       context: ./cybersage_ui
       dockerfile: Dockerfile
-    container_name: cybersage_ui
+    container_name: cybersage-ui
     ports:
       - "1000:80"
     depends_on:
-      - agent_a_web
-      - agent_b_web
-      - agent_c_queue
+      - agent-a-web
+      - agent-b-web
+      - agent-c-queue
     restart: unless-stopped
 
   postgres:
@@ -156,7 +156,7 @@ services:
     ports: !override
       - "9000:8000"
     volumes:
-      - agent_a_web_out:/app/out
+      - agent-a-web-out:/app/out
 
   frontend-react:
     build:
@@ -181,7 +181,7 @@ services:
 
 volumes:
   rabbitmq_data:
-  agent_a_web_out:
-  agent_b_pending:
-  agent_c_temp:
+  agent-a-web-out:
+  agent-b-pending:
+  agent-c-temp:
   qdrant_data:

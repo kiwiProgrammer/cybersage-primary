@@ -18,13 +18,13 @@ services:
     ports:
       - "8765:8765"
     command: python -m app.cli mcp-server --transport tcp --host 0.0.0.0 --port 8765
-  agent_a_web:
+  agent-a-web:
     build:
       context: ./
       additional_contexts:
         agent_a: ../agent_a
       dockerfile: Dockerfile
-    container_name: agent_a_web
+    container_name: agent-a-web
     ports:
       - "8000:8000"
     volumes:
