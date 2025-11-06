@@ -123,7 +123,6 @@ jobs:
             --set "services.cyberner-api.image.tag=${{ steps.commit.outputs.short_sha }}" \
             --set "services.frontend-react.image.tag=${{ steps.commit.outputs.short_sha }}" \
             --set "services.mcp-server-tcp.image.tag=${{ steps.commit.outputs.short_sha }}" \
-            --wait \
             --timeout 30m
 
       - name: Verify deployment
